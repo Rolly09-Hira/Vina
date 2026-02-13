@@ -11,10 +11,7 @@ export default function AdminNavbar({ toggleSidebar, isSidebarOpen }: AdminNavba
   const { user, logout } = useAuth();
 
   const getAvatarUrl = () => {
-    if (user?.photoUrl) {
-      return `http://localhost:5005/${user.photoUrl}`;
-    }
-    return null;
+    return user?.photoUrl ? `http://localhost:5005/${user.photoUrl}` : undefined;
   };
 
   const getUserInitials = () => {
