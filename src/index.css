@@ -1,0 +1,206 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --vert-jeune: #6FBF4A;
+    --vert-mousse: #4E8B3A;
+    --vert-fonce: #2F5D2F;
+    --bleu-ciel: #87CFEA;
+    --bleu-terre: #2C7FB8;
+    --bleu-gris: #6E8FA3;
+    --gris-roche: #7A7A7A;
+    --gris-chaud: #8C857C;
+    --brun-terre: #6B4F3A;
+    --blanc-lumiere: #F4F8F9;
+    --jaune-soleil: #F2D16B;
+  }
+}
+
+/* Classes utilitaires personnalisées */
+.bg-vert-jeune { background-color: #6FBF4A; }
+.bg-vert-mousse { background-color: #4E8B3A; }
+.bg-vert-fonce { background-color: #2F5D2F; }
+.bg-bleu-ciel { background-color: #87CFEA; }
+.bg-bleu-terre { background-color: #2C7FB8; }
+.bg-blanc-lumiere { background-color: #F4F8F9; }
+.bg-jaune-soleil { background-color: #F2D16B; }
+
+.text-vert-jeune { color: #6FBF4A; }
+.text-vert-mousse { color: #4E8B3A; }
+.text-vert-fonce { color: #2F5D2F; }
+.text-bleu-terre { color: #2C7FB8; }
+.text-bleu-gris { color: #6E8FA3; }
+.text-brun-terre { color: #6B4F3A; }
+
+.border-vert-jeune { border-color: #6FBF4A; }
+.border-bleu-ciel { border-color: #87CFEA; }
+.border-jaune-soleil { border-color: #F2D16B; }
+
+/* Scrollbar pour l'ensemble du site */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Scrollbar pour la sidebar */
+.sidebar-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 3px;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Empêcher le scroll sur le body quand sidebar mobile est ouverte */
+body.sidebar-open {
+  overflow: hidden;
+}
+
+/* Fix pour la hauteur sur mobile */
+@media (max-width: 768px) {
+  .mobile-full-height {
+    height: 100vh;
+  }
+}
+
+/* Améliorations pour le dashboard */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Animation pour les modals */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-animation {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Classe pour sidebar fixe */
+.fixed-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Pour le contenu principal scrollable */
+.main-content-scroll {
+  overflow-y: auto;
+  height: calc(100vh - 4rem); /* Ajustez selon la hauteur de votre navbar */
+}
+
+/* Assurez-vous que le contenu principal ne déborde pas */
+main {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Sticky pour le navbar */
+.sticky-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+/* Ajustement de la hauteur pour le contenu principal */
+.content-height {
+  height: calc(100vh - 4rem);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus styles pour l'accessibilité */
+*:focus {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* Loading spinner */
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #10b981;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Animations personnalisées */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 1s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 1s ease-out;
+}
