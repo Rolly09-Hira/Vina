@@ -264,7 +264,7 @@ export default function ActualitesAdmin() {
                       <div className="flex items-start space-x-4">
                         {actualite.imageUrl && (
                           <img
-                            src={`http://localhost:5005/${actualite.imageUrl}`}
+                            src={`http://https://backvina-production.up.railway.app/${actualite.imageUrl}`}
                             alt={actualite.titreFr}
                             className="w-16 h-16 object-cover rounded-lg"
                             onError={(e) => {

@@ -295,7 +295,7 @@ export default function MissionSection() {
     `}>
       {mission.imageUrl ? (
         <img
-          src={`http://localhost:5005/${mission.imageUrl.startsWith('/') ? mission.imageUrl.slice(1) : mission.imageUrl}`}
+          src={`http://https://backvina-production.up.railway.app/${mission.imageUrl.startsWith('/') ? mission.imageUrl.slice(1) : mission.imageUrl}`}
           alt={language === 'fr' ? mission.titreFr : mission.titreEn}
           className="w-full h-full object-cover"
           onError={(e) => {
