@@ -101,11 +101,11 @@ export default function ContactsAdmin() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'telephone': return 'bg-blue-100 text-blue-800';
-      case 'email': return 'bg-green-100 text-green-800';
-      case 'adresse': return 'bg-purple-100 text-purple-800';
-      case 'reseau_social': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'telephone': return 'bg-water-blue/20 text-water-blue border border-water-blue/30';
+      case 'email': return 'bg-olive-nature/20 text-olive-nature border border-olive-nature/30';
+      case 'adresse': return 'bg-earth-brown/20 text-earth-brown border border-earth-brown/30';
+      case 'reseau_social': return 'bg-sun-gold/20 text-sun-gold border border-sun-gold/30';
+      default: return 'bg-ultra-light text-text-secondary border border-border-light';
     }
   };
 
@@ -167,8 +167,8 @@ export default function ContactsAdmin() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement des contacts...</p>
+          <div className="w-12 h-12 border-4 border-olive-nature border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-secondary">Chargement des contacts...</p>
         </div>
       </div>
     );
@@ -180,14 +180,14 @@ export default function ContactsAdmin() {
       <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestion des Contacts</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-premium-dark">Gestion des Contacts</h1>
+            <p className="text-text-secondary mt-1">
               Gérez toutes les informations de contact de l'association VINA
             </p>
           </div>
           <button
             onClick={handleCreate}
-            className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white font-semibold rounded-lg hover:from-forest-deep hover:to-premium-dark transition-all shadow-md hover-lift"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -198,7 +198,7 @@ export default function ContactsAdmin() {
       </div>
 
       {error && (
-        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
+        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -216,7 +216,7 @@ export default function ContactsAdmin() {
       <div className="mb-6 space-y-4">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -225,17 +225,17 @@ export default function ContactsAdmin() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Rechercher un contact..."
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="block w-full pl-10 pr-3 py-2 border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature bg-warm-white text-text-dark"
           />
         </div>
 
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Filtrer par type:</span>
+            <span className="text-sm font-medium text-forest-deep">Filtrer par type:</span>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="px-3 py-1 border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature bg-warm-white text-text-dark"
             >
               <option value="all">Tous les types</option>
               <option value="telephone">Téléphones</option>
@@ -251,9 +251,9 @@ export default function ContactsAdmin() {
               id="actifFilter"
               checked={filterActif}
               onChange={(e) => setFilterActif(e.target.checked)}
-              className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+              className="w-4 h-4 text-olive-nature border-border-light rounded focus:ring-olive-nature"
             />
-            <label htmlFor="actifFilter" className="ml-2 text-sm font-medium text-gray-700">
+            <label htmlFor="actifFilter" className="ml-2 text-sm font-medium text-forest-deep">
               Afficher uniquement les actifs
             </label>
           </div>
@@ -261,34 +261,34 @@ export default function ContactsAdmin() {
       </div>
 
       {/* Tableau des contacts */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-warm-white rounded-xl shadow-lg overflow-hidden border border-border-light">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-border-light">
+            <thead className="bg-ultra-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Contact
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Type & Icône
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Ordre & Statut
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-warm-white divide-y divide-border-light">
               {filteredContacts.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center">
-                    <div className="text-gray-500">
-                      <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="text-text-secondary">
+                      <svg className="w-12 h-12 mx-auto mb-4 text-border-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
-                      <p className="text-lg font-medium mb-2">
+                      <p className="text-lg font-medium text-forest-deep mb-2">
                         {contacts.length === 0 ? 'Aucun contact trouvé' : 'Aucun résultat pour votre recherche'}
                       </p>
                       {contacts.length === 0 && (
@@ -299,23 +299,23 @@ export default function ContactsAdmin() {
                 </tr>
               ) : (
                 filteredContacts.map((contact) => (
-                  <tr key={contact.id} className="hover:bg-gray-50">
+                  <tr key={contact.id} className="hover:bg-ultra-light transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-start space-x-3">
-                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 bg-ultra-light rounded-full flex items-center justify-center flex-shrink-0 border border-border-light">
                           <span className="text-lg">
                             {getIconPreview(contact.icone, contact.typeContact)}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">{contact.titre}</div>
-                          <div className="text-sm text-gray-500 truncate">{contact.valeur}</div>
+                          <div className="font-medium text-premium-dark truncate">{contact.titre}</div>
+                          <div className="text-sm text-text-secondary truncate">{contact.valeur}</div>
                           {contact.lien && (
                             <a
                               href={contact.lien}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center mt-1 text-xs text-blue-600 hover:text-blue-800"
+                              className="inline-flex items-center mt-1 text-xs text-water-blue hover:text-forest-deep transition-colors"
                             >
                               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -332,8 +332,8 @@ export default function ContactsAdmin() {
                           {getTypeText(contact.typeContact)}
                         </span>
                         {contact.icone && (
-                          <div className="text-xs text-gray-500">
-                            <span className="font-medium">Icône:</span> {contact.icone}
+                          <div className="text-xs text-text-secondary">
+                            <span className="font-medium text-forest-deep">Icône:</span> {contact.icone}
                           </div>
                         )}
                       </div>
@@ -341,18 +341,18 @@ export default function ContactsAdmin() {
                     <td className="px-6 py-4">
                       <div className="space-y-2">
                         <div className="flex items-center">
-                          <span className="text-sm text-gray-600 mr-2">Ordre:</span>
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs font-bold">
+                          <span className="text-sm text-text-secondary mr-2">Ordre:</span>
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-soft/20 text-water-blue text-xs font-bold border border-sky-soft/30">
                             {contact.ordreAffichage || 1}
                           </span>
                         </div>
                         <div>
                           <button
                             onClick={() => handleToggleActif(contact.id)}
-                            className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full transition-colors ${
+                            className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full transition-colors border ${
                               contact.actif
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                : 'bg-red-100 text-red-800 hover:bg-red-200'
+                                ? 'bg-olive-nature/20 text-olive-nature border-olive-nature/30 hover:bg-olive-nature/30'
+                                : 'bg-earth-brown/20 text-earth-brown border-earth-brown/30 hover:bg-earth-brown/30'
                             }`}
                           >
                             {contact.actif ? (
@@ -378,7 +378,7 @@ export default function ContactsAdmin() {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(contact)}
-                          className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-water-blue hover:text-forest-deep hover:bg-sky-soft/10 rounded-lg transition-colors"
                           title="Modifier"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,7 +387,7 @@ export default function ContactsAdmin() {
                         </button>
                         <button
                           onClick={() => handleDelete(contact.id)}
-                          className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-sun-gold hover:text-earth-brown hover:bg-sun-gold/10 rounded-lg transition-colors"
                           title="Supprimer"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -417,59 +417,59 @@ export default function ContactsAdmin() {
 
       {/* Statistiques */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Total contacts</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{contacts.length}</p>
+              <p className="text-text-secondary text-sm">Total contacts</p>
+              <p className="text-2xl font-bold text-premium-dark mt-1">{contacts.length}</p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-olive-nature/20 rounded-lg flex items-center justify-center border border-olive-nature/30">
+              <svg className="w-6 h-6 text-olive-nature" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Téléphones</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">
+              <p className="text-text-secondary text-sm">Téléphones</p>
+              <p className="text-2xl font-bold text-water-blue mt-1">
                 {contacts.filter(c => c.typeContact === 'telephone').length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-sky-soft/20 rounded-lg flex items-center justify-center border border-sky-soft/30">
+              <svg className="w-6 h-6 text-water-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Emails</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
+              <p className="text-text-secondary text-sm">Emails</p>
+              <p className="text-2xl font-bold text-olive-nature mt-1">
                 {contacts.filter(c => c.typeContact === 'email').length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-olive-nature/20 rounded-lg flex items-center justify-center border border-olive-nature/30">
+              <svg className="w-6 h-6 text-olive-nature" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Actifs</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1">
+              <p className="text-text-secondary text-sm">Actifs</p>
+              <p className="text-2xl font-bold text-sun-gold mt-1">
                 {contacts.filter(c => c.actif).length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-sun-gold/20 rounded-lg flex items-center justify-center border border-sun-gold/30">
+              <svg className="w-6 h-6 text-sun-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>

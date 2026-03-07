@@ -2,7 +2,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useStats } from '../../contexts/StatsContext';
 import { useAuth } from '../../contexts/AuthContext';
-import logoSrc from '../../assets/VraiLogo.jpg'; // Assurez-vous que le chemin est correct
+import logoSrc from '../../assets/VraiLogo.jpg';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -23,21 +23,22 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
   const { stats } = useStats();
   const { user } = useAuth();
 
-  // Palette de couleurs VINA - harmonisée
+  // Palette de couleurs VINA - harmonisée avec tes variables CSS
   const colors = {
-    primary: '#2F5D2F',      // Vert foncé (texte principal, titres)
-    secondary: '#4E8B3A',    // Vert mousse (accents)
-    accent: '#6FBF4A',       // Vert jeune (badges actifs, bordures actives)
-    earth: '#6B4F3A',        // Brun terre (texte secondaire, icônes inactives)
-    sky: '#87CFEA',          // Bleu ciel (fonds légers, admin tag)
-    water: '#2C7FB8',        // Bleu terre (non utilisé ici)
-    lightBg: '#F4F8F9',      // Blanc lumière (fond de la sidebar)
-    lightGray: '#E5E7EB',    // Gris très clair (bordures, fonds de badges inactifs)
-    mediumGray: '#9CA3AF',   // Gris moyen (texte désactivé)
-    white: '#FFFFFF',
-    black: '#1F2937',
-    activeBg: '#F0F9F0',     // Vert très pâle pour fond actif
-    hoverBg: '#F3F4F6',      // Gris clair pour survol
+    primary: 'var(--olive-nature)',      // #6B7333
+    primaryDark: 'var(--forest-deep)',    // #4E5523
+    premium: 'var(--premium-dark)',       // #3E4420
+    secondary: 'var(--light-moss)',       // #8A9450
+    accent: 'var(--sun-gold)',            // #E0B93B
+    accentLight: 'var(--soft-sun)',        // #F3D77A
+    earth: 'var(--earth-brown)',           // #6B4F3A
+    water: 'var(--water-blue)',            // #2C7FB8
+    sky: 'var(--sky-soft)',                // #87CFEA
+    lightBg: 'var(--warm-white)',          // #F2F2E9
+    ultraLight: 'var(--ultra-light)',      // #F7F8F1
+    border: 'var(--border-light)',          // #E5E7EB
+    textSecondary: 'var(--text-secondary)', // #6B7280
+    textDark: 'var(--text-dark)',           // #333333
   };
 
   // Items de navigation
@@ -145,6 +146,16 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
       path: '/admin/utilisateurs',
       badge: stats.totalUtilisateurs,
       adminOnly: true
+    },
+    {
+      label: 'Dons',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      ),
+      path: '/admin/dons',
+      badge: stats.totalDonsIntentions
     }
   ];
 
@@ -191,38 +202,43 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
           transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0 transition-transform duration-300 ease-in-out
           flex flex-col h-screen border-r shadow-xl
-          w-64 flex-shrink-0
+          w-64 flex-shrink-0 overflow-hidden
         `}
-        style={{ backgroundColor: colors.lightBg, borderColor: colors.lightGray }}
+        style={{ 
+          backgroundColor: colors.lightBg, 
+          borderColor: colors.border 
+        }}
       >
-        {/* En-tête avec logo */}
-        <div className="p-6 border-b flex-shrink-0" style={{ borderColor: colors.lightGray }}>
+        {/* En-tête avec logo - Hauteur fixe */}
+        <div className="p-4 border-b flex-shrink-0" style={{ borderColor: colors.border, minHeight: '80px' }}>
           <div className="flex items-center space-x-3">
-            {/* Logo en cercle comme dans la navbar */}
-            <div className={`
-              relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden transition-all duration-300
-              ring-2 ring-[#6FBF4A] shadow-lg
-            `}>
+            {/* Logo en cercle - Correction du ring */}
+            <div 
+              className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden transition-all duration-300 shadow-lg flex-shrink-0"
+              style={{ 
+                boxShadow: `0 0 0 2px ${colors.accent}, 0 4px 6px -1px rgba(0, 0, 0, 0.1)` 
+              }}
+            >
               <img 
                 src={logoSrc} 
                 alt="VINA Logo" 
                 className="w-full h-full object-cover"
               />
             </div>
-            <div>
-              <h2 className="text-lg font-bold" style={{ color: colors.primary }}>VINA</h2>
-              <p className="text-xs" style={{ color: colors.earth }}>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-bold truncate" style={{ color: colors.primary }}>VINA</h2>
+              <p className="text-xs truncate" style={{ color: colors.textSecondary }}>
                 {user ? `${user.nom} (${user.role === 'ADMIN' ? 'Admin' : 'Éditeur'})` : 'Administration'}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto py-6 px-4">
+        {/* Navigation - Zone scrollable avec hauteur calculée */}
+        <div className="flex-1 overflow-y-auto py-4 px-3 sidebar-scrollable" style={{ backgroundColor: colors.lightBg }}>
           <nav className="space-y-1">
-            <div className="px-3 mb-4">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.earth }}>
+            <div className="px-3 mb-2">
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                 Navigation
               </p>
             </div>
@@ -235,15 +251,13 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
                   key={item.path}
                   to={item.path}
                   onClick={handleLinkClick}
-                  className="flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200"
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group"
                   style={{
-                    backgroundColor: active ? colors.activeBg : 'transparent',
-                    color: active ? colors.primary : colors.earth,
-                    borderLeft: active ? `4px solid ${colors.accent}` : '4px solid transparent',
+                    backgroundColor: active ? `${colors.primary}10` : 'transparent',
                   }}
                   onMouseEnter={(e) => {
                     if (!active) {
-                      e.currentTarget.style.backgroundColor = colors.hoverBg;
+                      e.currentTarget.style.backgroundColor = `${colors.primary}08`;
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -252,15 +266,27 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
                     }
                   }}
                 >
-                  <div className="flex items-center space-x-3">
-                    <span style={{ color: active ? colors.accent : colors.earth }}>
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <span className="flex-shrink-0" style={{ 
+                      color: active ? colors.accent : colors.textSecondary,
+                      transition: 'color 0.2s'
+                    }}>
                       {item.icon}
                     </span>
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="text-sm font-medium truncate" style={{ 
+                      color: active ? colors.primary : colors.textSecondary,
+                      transition: 'color 0.2s'
+                    }}>
+                      {item.label}
+                    </span>
                     {item.adminOnly && (
                       <span
-                        className="text-xs px-2 py-0.5 rounded-full"
-                        style={{ backgroundColor: colors.sky, color: colors.primary }}
+                        className="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0"
+                        style={{ 
+                          backgroundColor: `${colors.sky}20`, 
+                          color: colors.water,
+                          border: `1px solid ${colors.sky}30`
+                        }}
                       >
                         Admin
                       </span>
@@ -268,10 +294,10 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
                   </div>
                   {badgeValue !== null && (
                     <span
-                      className="inline-flex items-center justify-center min-w-[24px] px-2 py-1 text-xs font-bold rounded-full"
+                      className="inline-flex items-center justify-center min-w-[22px] px-1.5 py-0.5 text-xs font-bold rounded-full flex-shrink-0 ml-2"
                       style={{
-                        backgroundColor: active ? colors.accent : colors.lightGray,
-                        color: active ? colors.white : colors.earth,
+                        backgroundColor: active ? colors.accent : `${colors.textSecondary}15`,
+                        color: active ? colors.lightBg : colors.textSecondary,
                       }}
                     >
                       {badgeValue}
@@ -282,8 +308,8 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
             })}
 
             {/* Section Mon compte */}
-            <div className="px-3 mt-8 mb-4">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.earth }}>
+            <div className="px-3 mt-6 mb-2">
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                 Mon compte
               </p>
             </div>
@@ -291,15 +317,13 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
             <Link
               to="/admin/profile"
               onClick={handleLinkClick}
-              className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200"
+              className="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group"
               style={{
-                backgroundColor: location.pathname === '/admin/profile' ? colors.activeBg : 'transparent',
-                color: location.pathname === '/admin/profile' ? colors.primary : colors.earth,
-                borderLeft: location.pathname === '/admin/profile' ? `4px solid ${colors.accent}` : '4px solid transparent',
+                backgroundColor: location.pathname === '/admin/profile' ? `${colors.primary}10` : 'transparent',
               }}
               onMouseEnter={(e) => {
                 if (location.pathname !== '/admin/profile') {
-                  e.currentTarget.style.backgroundColor = colors.hoverBg;
+                  e.currentTarget.style.backgroundColor = `${colors.primary}08`;
                 }
               }}
               onMouseLeave={(e) => {
@@ -308,20 +332,26 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
                 }
               }}
             >
-              <span style={{ color: location.pathname === '/admin/profile' ? colors.accent : colors.earth }}>
+              <span className="flex-shrink-0" style={{ 
+                color: location.pathname === '/admin/profile' ? colors.accent : colors.textSecondary 
+              }}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </span>
-              <span className="text-sm font-medium">Mon profil</span>
+              <span className="text-sm font-medium truncate" style={{ 
+                color: location.pathname === '/admin/profile' ? colors.primary : colors.textSecondary 
+              }}>
+                Mon profil
+              </span>
             </Link>
           </nav>
         </div>
 
-        {/* Pied de page */}
-        <div className="p-4 border-t flex-shrink-0" style={{ borderColor: colors.lightGray }}>
-          <div className="px-3 mb-3">
-            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.earth }}>
+        {/* Pied de page - Hauteur fixe */}
+        <div className="p-3 border-t flex-shrink-0" style={{ borderColor: colors.border, backgroundColor: colors.ultraLight }}>
+          <div className="px-2 mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textSecondary }}>
               Accès rapide
             </p>
           </div>
@@ -329,42 +359,42 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
           <Link
             to="/"
             onClick={handleLinkClick}
-            className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200"
-            style={{ color: colors.earth }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.hoverBg}
+            className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 group mb-3"
+            style={{ color: colors.textSecondary }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${colors.primary}08`}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
-            <span style={{ color: colors.earth }}>
+            <span className="flex-shrink-0 group-hover:text-forest-deep transition-colors" style={{ color: colors.textSecondary }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </span>
-            <span className="text-sm">Retour au site</span>
+            <span className="text-sm group-hover:text-forest-deep transition-colors truncate">Retour au site</span>
           </Link>
 
           {/* Profil utilisateur */}
-          <div className="mt-4 px-4 py-3 rounded-lg" style={{ backgroundColor: colors.lightGray }}>
+          <div className="px-3 py-2 rounded-lg" style={{ backgroundColor: `${colors.border}40` }}>
             <div className="flex items-center space-x-3">
               {user?.photoUrl ? (
                 <img
-                  src={`http://localhost:5005/${user.photoUrl}`}
+                  src={`https://web-production-03b53.up.railway.app/${user.photoUrl}`}
                   alt={user.nom}
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                   style={{ borderColor: colors.accent, borderWidth: '2px' }}
                 />
               ) : (
                 <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold"
-                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-warm-white font-semibold flex-shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.primaryDark})` }}
                 >
                   {getUserInitials()}
                 </div>
               )}
-              <div>
-                <p className="text-sm font-medium" style={{ color: colors.primary }}>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate" style={{ color: colors.primary }}>
                   {user ? user.nom : 'Chargement...'}
                 </p>
-                <p className="text-xs" style={{ color: colors.earth }}>
+                <p className="text-xs truncate" style={{ color: colors.textSecondary }}>
                   {user ? `${user.role.toLowerCase()} • Connecté` : 'Déconnecté'}
                 </p>
               </div>

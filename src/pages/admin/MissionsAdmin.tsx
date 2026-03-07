@@ -112,8 +112,8 @@ export default function MissionsAdmin() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement des missions...</p>
+          <div className="w-12 h-12 border-4 border-olive-nature border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-secondary">Chargement des missions...</p>
         </div>
       </div>
     );
@@ -125,14 +125,14 @@ export default function MissionsAdmin() {
       <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestion des Missions</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-premium-dark">Gestion des Missions</h1>
+            <p className="text-text-secondary mt-1">
               Gérez toutes les missions et valeurs de l'association VINA
             </p>
           </div>
           <button
             onClick={handleCreate}
-            className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white font-semibold rounded-lg hover:from-forest-deep hover:to-premium-dark transition-all shadow-md hover-lift"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -143,7 +143,7 @@ export default function MissionsAdmin() {
       </div>
 
       {error && (
-        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
+        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -161,7 +161,7 @@ export default function MissionsAdmin() {
       <div className="mb-6 space-y-4">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -170,7 +170,7 @@ export default function MissionsAdmin() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Rechercher une mission..."
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="block w-full pl-10 pr-3 py-2 border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature bg-warm-white text-text-dark"
           />
         </div>
 
@@ -181,9 +181,9 @@ export default function MissionsAdmin() {
               id="actifFilter"
               checked={filterActif}
               onChange={(e) => setFilterActif(e.target.checked)}
-              className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+              className="w-4 h-4 text-olive-nature border-border-light rounded focus:ring-olive-nature"
             />
-            <label htmlFor="actifFilter" className="ml-2 text-sm font-medium text-gray-700">
+            <label htmlFor="actifFilter" className="ml-2 text-sm font-medium text-forest-deep">
               Afficher uniquement les actives
             </label>
           </div>
@@ -191,37 +191,37 @@ export default function MissionsAdmin() {
       </div>
 
       {/* Tableau des missions */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-warm-white rounded-xl shadow-lg overflow-hidden border border-border-light">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-border-light">
+            <thead className="bg-ultra-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Mission
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Icône & Image
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Ordre & Statut
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Dates
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-warm-white divide-y divide-border-light">
               {filteredMissions.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center">
-                    <div className="text-gray-500">
-                      <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="text-text-secondary">
+                      <svg className="w-12 h-12 mx-auto mb-4 text-border-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      <p className="text-lg font-medium mb-2">
+                      <p className="text-lg font-medium text-forest-deep mb-2">
                         {missions.length === 0 ? 'Aucune mission trouvée' : 'Aucun résultat pour votre recherche'}
                       </p>
                       {missions.length === 0 && (
@@ -232,33 +232,33 @@ export default function MissionsAdmin() {
                 </tr>
               ) : (
                 filteredMissions.map((mission) => (
-                  <tr key={mission.id} className="hover:bg-gray-50">
+                  <tr key={mission.id} className="hover:bg-ultra-light transition-colors">
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-medium text-gray-900">{mission.titreFr}</div>
-                        <div className="text-sm text-gray-500 italic">{mission.titreEn}</div>
+                        <div className="font-medium text-premium-dark">{mission.titreFr}</div>
+                        <div className="text-sm text-text-secondary italic">{mission.titreEn}</div>
                         {mission.sloganFr && (
-                          <div className="mt-1 text-sm text-gray-600">
-                            <span className="font-medium">Slogan: </span>
+                          <div className="mt-1 text-sm text-text-secondary">
+                            <span className="font-medium text-forest-deep">Slogan: </span>
                             "{mission.sloganFr}"
                             {mission.sloganEn && (
-                              <span className="ml-2 text-gray-400 italic">"{mission.sloganEn}"</span>
+                              <span className="ml-2 text-border-light italic">"{mission.sloganEn}"</span>
                             )}
                           </div>
                         )}
-                        <div className="mt-2 text-sm text-gray-500">
-                          <span className="font-medium">Description: </span>
+                        <div className="mt-2 text-sm text-text-secondary">
+                          <span className="font-medium text-forest-deep">Description: </span>
                           {truncateText(mission.descriptionFr)}
                         </div>
                         {mission.objectifsFr && (
-                          <div className="mt-1 text-xs text-gray-400">
-                            <span className="font-medium">Objectifs: </span>
+                          <div className="mt-1 text-xs text-border-light">
+                            <span className="font-medium text-text-secondary">Objectifs: </span>
                             {truncateText(mission.objectifsFr, 50)}
                           </div>
                         )}
                         {mission.valeursFr && (
-                          <div className="mt-1 text-xs text-gray-400">
-                            <span className="font-medium">Valeurs: </span>
+                          <div className="mt-1 text-xs text-border-light">
+                            <span className="font-medium text-text-secondary">Valeurs: </span>
                             {truncateText(mission.valeursFr, 50)}
                           </div>
                         )}
@@ -268,11 +268,11 @@ export default function MissionsAdmin() {
                       <div className="flex flex-col space-y-2">
                         {mission.iconUrl && (
                           <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-500">Icône:</span>
+                            <span className="text-xs text-text-secondary">Icône:</span>
                             <img
-                              src={`http://localhost:5005/${mission.iconUrl}`}
+                              src={`https://web-production-03b53.up.railway.app/${mission.iconUrl}`}
                               alt="Icône"
-                              className="w-8 h-8 object-contain rounded"
+                              className="w-8 h-8 object-contain rounded border border-border-light bg-ultra-light"
                               onError={(e) => {
                                 e.currentTarget.src = 'https://via.placeholder.com/32?text=Icon';
                               }}
@@ -281,11 +281,11 @@ export default function MissionsAdmin() {
                         )}
                         {mission.imageUrl && (
                           <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-500">Image:</span>
+                            <span className="text-xs text-text-secondary">Image:</span>
                             <img
-                              src={`http://localhost:5005/${mission.imageUrl}`}
+                              src={`https://web-production-03b53.up.railway.app/${mission.imageUrl}`}
                               alt="Image"
-                              className="w-12 h-8 object-cover rounded"
+                              className="w-12 h-8 object-cover rounded border border-border-light"
                               onError={(e) => {
                                 e.currentTarget.src = 'https://via.placeholder.com/48x32?text=Image';
                               }}
@@ -297,21 +297,21 @@ export default function MissionsAdmin() {
                     <td className="px-6 py-4">
                       <div className="space-y-2">
                         <div className="flex items-center">
-                          <span className="text-sm text-gray-600 mr-2">Ordre:</span>
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs font-bold">
+                          <span className="text-sm text-text-secondary mr-2">Ordre:</span>
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-soft/20 text-water-blue text-xs font-bold border border-sky-soft/30">
                             {mission.ordreAffichage || 1}
                           </span>
                         </div>
                         <div>
                           {mission.actif ? (
-                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-olive-nature/20 text-olive-nature rounded-full border border-olive-nature/30">
                               <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
                               Active
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-earth-brown/20 text-earth-brown rounded-full border border-earth-brown/30">
                               <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                               </svg>
@@ -321,15 +321,15 @@ export default function MissionsAdmin() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-text-secondary">
                       <div className="space-y-1">
                         <div>
-                          <span className="font-medium">Créée:</span>
-                          <div className="text-gray-400">{formatDate(mission.createdAt)}</div>
+                          <span className="font-medium text-forest-deep">Créée:</span>
+                          <div className="text-border-light">{formatDate(mission.createdAt)}</div>
                         </div>
                         <div>
-                          <span className="font-medium">Modifiée:</span>
-                          <div className="text-gray-400">{formatDate(mission.updatedAt)}</div>
+                          <span className="font-medium text-forest-deep">Modifiée:</span>
+                          <div className="text-border-light">{formatDate(mission.updatedAt)}</div>
                         </div>
                       </div>
                     </td>
@@ -337,7 +337,7 @@ export default function MissionsAdmin() {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(mission)}
-                          className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-water-blue hover:text-forest-deep hover:bg-sky-soft/10 rounded-lg transition-colors"
                           title="Modifier"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -346,7 +346,7 @@ export default function MissionsAdmin() {
                         </button>
                         <button
                           onClick={() => handleDelete(mission.id)}
-                          className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-sun-gold hover:text-earth-brown hover:bg-sun-gold/10 rounded-lg transition-colors"
                           title="Supprimer"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -376,59 +376,59 @@ export default function MissionsAdmin() {
 
       {/* Statistiques */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Total missions</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{missions.length}</p>
+              <p className="text-text-secondary text-sm">Total missions</p>
+              <p className="text-2xl font-bold text-premium-dark mt-1">{missions.length}</p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-olive-nature/20 rounded-lg flex items-center justify-center border border-olive-nature/30">
+              <svg className="w-6 h-6 text-olive-nature" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Missions actives</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
+              <p className="text-text-secondary text-sm">Missions actives</p>
+              <p className="text-2xl font-bold text-olive-nature mt-1">
                 {missions.filter(m => m.actif).length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-olive-nature/20 rounded-lg flex items-center justify-center border border-olive-nature/30">
+              <svg className="w-6 h-6 text-olive-nature" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Avec icône</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">
+              <p className="text-text-secondary text-sm">Avec icône</p>
+              <p className="text-2xl font-bold text-water-blue mt-1">
                 {missions.filter(m => m.iconUrl).length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-sky-soft/20 rounded-lg flex items-center justify-center border border-sky-soft/30">
+              <svg className="w-6 h-6 text-water-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Avec image</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1">
+              <p className="text-text-secondary text-sm">Avec image</p>
+              <p className="text-2xl font-bold text-sun-gold mt-1">
                 {missions.filter(m => m.imageUrl).length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-sun-gold/20 rounded-lg flex items-center justify-center border border-sun-gold/30">
+              <svg className="w-6 h-6 text-sun-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>

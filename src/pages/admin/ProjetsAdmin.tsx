@@ -112,11 +112,11 @@ export default function ProjetsAdmin() {
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
-      case 'en_cours': return 'bg-green-100 text-green-800';
-      case 'termine': return 'bg-blue-100 text-blue-800';
-      case 'a_venir': return 'bg-yellow-100 text-yellow-800';
-      case 'suspendu': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'en_cours': return 'bg-olive-nature/10 text-olive-nature border border-olive-nature/30';
+      case 'termine': return 'bg-water-blue/10 text-water-blue border border-water-blue/30';
+      case 'a_venir': return 'bg-sun-gold/10 text-sun-gold border border-sun-gold/30';
+      case 'suspendu': return 'bg-earth-brown/10 text-earth-brown border border-earth-brown/30';
+      default: return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
 
@@ -154,8 +154,9 @@ export default function ProjetsAdmin() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement des projets...</p>
+          <div className="w-12 h-12 border-4 border-border-light rounded-full"></div>
+          <div className="w-12 h-12 border-4 border-olive-nature border-t-transparent rounded-full animate-spin absolute top-0"></div>
+          <p className="text-forest-deep mt-4">Chargement des projets...</p>
         </div>
       </div>
     );
@@ -167,14 +168,14 @@ export default function ProjetsAdmin() {
       <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestion des Projets</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-forest-deep">Gestion des Projets</h1>
+            <p className="text-text-secondary mt-1">
               Gérez tous les projets de l'association VINA
             </p>
           </div>
           <button
             onClick={handleCreate}
-            className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white font-semibold rounded-lg hover:from-forest-deep hover:to-premium-dark transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -203,7 +204,7 @@ export default function ProjetsAdmin() {
       <div className="mb-6">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -212,65 +213,65 @@ export default function ProjetsAdmin() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Rechercher un projet par titre, description, domaine ou région..."
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="block w-full pl-10 pr-3 py-2 border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white"
           />
         </div>
       </div>
 
       {/* Tableau des projets */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-warm-white rounded-xl shadow-lg border border-border-light overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-border-light">
+            <thead className="bg-ultra-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Projet (FR/EN)
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Image
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Domaine / Région
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Bénéficiaires
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Statut
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Dates
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-warm-white divide-y divide-border-light">
               {filteredProjets.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center">
-                    <div className="text-gray-500">
-                      <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="text-text-secondary">
+                      <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                       </svg>
-                      <p className="text-lg font-medium mb-2">
+                      <p className="text-lg font-medium mb-2 text-forest-deep">
                         {projets.length === 0 ? 'Aucun projet trouvé' : 'Aucun résultat pour votre recherche'}
                       </p>
                       {projets.length === 0 && (
-                        <p className="text-sm">Commencez par créer votre premier projet</p>
+                        <p className="text-sm text-text-secondary">Commencez par créer votre premier projet</p>
                       )}
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredProjets.map((projet) => (
-                  <tr key={projet.id} className="hover:bg-gray-50">
+                  <tr key={projet.id} className="hover:bg-ultra-light transition-colors">
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-medium text-gray-900">{projet.titreFr}</div>
-                        <div className="text-sm text-gray-500 italic">{projet.titreEn}</div>
-                        <div className="mt-1 text-sm text-gray-500 line-clamp-2">
+                        <div className="font-medium text-forest-deep">{projet.titreFr}</div>
+                        <div className="text-sm text-text-secondary italic">{projet.titreEn}</div>
+                        <div className="mt-1 text-sm text-text-secondary line-clamp-2">
                           {projet.descriptionFr.substring(0, 60)}...
                         </div>
                       </div>
@@ -278,16 +279,16 @@ export default function ProjetsAdmin() {
                     <td className="px-6 py-4">
                       {projet.imageUrl ? (
                         <img
-                          src={`http://localhost:5005/${projet.imageUrl}`}
+                          src={`https://web-production-03b53.up.railway.app/${projet.imageUrl}`}
                           alt={projet.titreFr}
-                          className="w-16 h-16 object-cover rounded-lg"
+                          className="w-16 h-16 object-cover rounded-lg border border-border-light"
                           onError={(e) => {
                             e.currentTarget.src = 'https://via.placeholder.com/64?text=No+Image';
                           }}
                         />
                       ) : (
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <span className="text-gray-400 text-xs">Aucune image</span>
+                        <div className="w-16 h-16 bg-ultra-light rounded-lg flex items-center justify-center border border-border-light">
+                          <span className="text-text-secondary text-xs">Aucune image</span>
                         </div>
                       )}
                     </td>
@@ -298,8 +299,8 @@ export default function ProjetsAdmin() {
                         </span>
                       </div>
                       {projet.region && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex items-center text-sm text-text-secondary">
+                          <svg className="w-4 h-4 mr-1 text-sun-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
@@ -308,20 +309,20 @@ export default function ProjetsAdmin() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-forest-deep">
                         {formatNumber(projet.beneficiaires)}
                       </div>
-                      <div className="text-xs text-gray-500">personnes</div>
+                      <div className="text-xs text-text-secondary">personnes</div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(projet.statut)}`}>
                         {getStatusText(projet.statut)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-text-secondary">
                       <div className="font-medium">Début: {formatDate(projet.dateDebut)}</div>
                       {projet.dateFin && (
-                        <div className="text-gray-400">
+                        <div className="text-text-secondary">
                           Fin: {formatDate(projet.dateFin)}
                         </div>
                       )}
@@ -330,7 +331,7 @@ export default function ProjetsAdmin() {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(projet)}
-                          className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-water-blue hover:text-white hover:bg-water-blue rounded-lg transition-colors"
                           title="Modifier"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,7 +340,7 @@ export default function ProjetsAdmin() {
                         </button>
                         <button
                           onClick={() => handleDelete(projet.id)}
-                          className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-earth-brown hover:text-white hover:bg-earth-brown rounded-lg transition-colors"
                           title="Supprimer"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,7 +357,7 @@ export default function ProjetsAdmin() {
         </div>
       </div>
 
-      {/* Modal - À noter: Il faudra aussi modifier ProjetModal pour inclure les nouveaux champs */}
+      {/* Modal */}
       <ProjetModal
         isOpen={showModal}
         onClose={() => {
@@ -369,62 +370,62 @@ export default function ProjetsAdmin() {
 
       {/* Statistiques améliorées */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Total projets</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{projets.length}</p>
+              <p className="text-text-secondary text-sm">Total projets</p>
+              <p className="text-2xl font-bold text-forest-deep mt-1">{projets.length}</p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-olive-nature/10 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-olive-nature" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Bénéficiaires</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">
+              <p className="text-text-secondary text-sm">Bénéficiaires</p>
+              <p className="text-2xl font-bold text-water-blue mt-1">
                 {formatNumber(projets.reduce((acc, p) => acc + (p.beneficiaires || 0), 0))}
               </p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-water-blue/10 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-water-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">En cours</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
+              <p className="text-text-secondary text-sm">En cours</p>
+              <p className="text-2xl font-bold text-sun-gold mt-1">
                 {projets.filter(p => p.statut === 'en_cours').length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-sun-gold/10 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-sun-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow hover-lift">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Régions couvertes</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1">
+              <p className="text-text-secondary text-sm">Régions couvertes</p>
+              <p className="text-2xl font-bold text-earth-brown mt-1">
                 {new Set(projets.filter(p => p.region).map(p => p.region?.id)).size}
               </p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-earth-brown/10 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-earth-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2 2 2 4-4 2 2 2-2 2 2 2-2 2 2" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 21v-7m4 7v-7m4 7v-7m4 7v-7m4 7v-7" />
               </svg>

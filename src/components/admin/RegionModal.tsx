@@ -26,22 +26,26 @@ export default function RegionModal({ isOpen, onClose, onSave, region }: RegionM
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
   // Initialiser le formulaire
   useEffect(() => {
-    if (region) {
-      setFormData({
-        nom: region.nom || '',
-        description: region.description || ''
-      });
-    } else {
-      setFormData({
-        nom: '',
-        description: ''
-      });
+    if (isOpen) {
+      if (region) {
+        setFormData({
+          nom: region.nom || '',
+          description: region.description || ''
+        });
+      } else {
+        setFormData({
+          nom: '',
+          description: ''
+        });
+      }
+      setErrors({});
+      setTouchedFields(new Set());
     }
-    setErrors({});
-  }, [region]);
+  }, [region, isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -49,6 +53,9 @@ export default function RegionModal({ isOpen, onClose, onSave, region }: RegionM
       ...prev,
       [name]: value
     }));
+    
+    setTouchedFields(prev => new Set(prev).add(name));
+    
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -77,6 +84,8 @@ export default function RegionModal({ isOpen, onClose, onSave, region }: RegionM
     e.preventDefault();
     
     if (!validateForm()) {
+      const firstError = document.querySelector('.border-red-500');
+      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -87,6 +96,7 @@ export default function RegionModal({ isOpen, onClose, onSave, region }: RegionM
       onClose();
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement:', error);
+      setErrors(prev => ({ ...prev, submit: 'Erreur lors de la sauvegarde' }));
     } finally {
       setIsSubmitting(false);
     }
@@ -98,115 +108,128 @@ export default function RegionModal({ isOpen, onClose, onSave, region }: RegionM
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Overlay */}
-        <div className="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-50 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 transition-opacity bg-premium-dark bg-opacity-60 backdrop-blur-sm" onClick={onClose} />
 
         {/* Modal */}
-        <div className="inline-block w-full max-w-lg my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-2xl shadow-2xl">
+        <div className="inline-block w-full max-w-lg my-8 overflow-hidden text-left align-middle transition-all transform bg-warm-white rounded-2xl shadow-2xl border border-border-light">
           {/* En-tête */}
-          <div className="px-6 py-5 bg-gradient-to-r from-blue-600 to-blue-700">
+          <div className={`px-5 py-3 ${region ? 'bg-gradient-to-r from-water-blue to-sky-soft' : 'bg-gradient-to-r from-olive-nature to-forest-deep'}`}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-white bg-opacity-20 rounded-xl">
+              <div className="flex items-center space-x-2">
+                <div className="p-1.5 bg-warm-white bg-opacity-20 rounded-lg">
                   {region ? (
-                    <FaEdit className="w-5 h-5 text-white" />
+                    <FaEdit className="w-4 h-4 text-warm-white" />
                   ) : (
-                    <FaPlus className="w-5 h-5 text-white" />
+                    <FaPlus className="w-4 h-4 text-warm-white" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-base font-bold text-warm-white">
                     {region ? 'Modifier la région' : 'Nouvelle région'}
                   </h3>
-                  <p className="text-sm text-blue-100 mt-0.5">
+                  <p className="text-[10px] text-warm-white text-opacity-90">
                     {region 
-                      ? 'Modifiez les informations de la région' 
+                      ? 'Modifiez les informations' 
                       : 'Ajoutez une nouvelle région'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 text-white hover:bg-blue-500 rounded-xl transition-colors"
+                className="p-1 text-warm-white hover:bg-warm-white hover:bg-opacity-20 rounded-lg transition-all"
               >
-                <FaTimes className="w-5 h-5" />
+                <FaTimes className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Formulaire */}
           <form onSubmit={handleSubmit}>
-            <div className="px-6 py-6 space-y-5">
+            <div className="px-5 py-4 space-y-4">
+              {/* Message d'erreur global */}
+              {errors.submit && (
+                <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600">
+                  {errors.submit}
+                </div>
+              )}
+
               {/* Champ Nom */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nom de la région <span className="text-red-500">*</span>
+                <label className="block text-xs font-medium text-forest-deep mb-1">
+                  Nom de la région <span className="text-sun-gold">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaMapMarkerAlt className="h-4 w-4 text-gray-400" />
+                    <FaMapMarkerAlt className="h-4 w-4 text-text-secondary" />
                   </div>
                   <input
                     type="text"
                     name="nom"
                     value={formData.nom}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-2.5 border ${
-                      errors.nom ? 'border-red-500 ring-red-100' : 'border-gray-300'
-                    } rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
-                    placeholder="Ex: Analamanga, Atsinanana, etc."
+                    onBlur={() => setTouchedFields(prev => new Set(prev).add('nom'))}
+                    className={`w-full pl-10 pr-3 py-2 text-sm border ${
+                      touchedFields.has('nom') && errors.nom 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-border-light'
+                    } rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white`}
+                    placeholder="Ex: Analamanga, Atsinanana..."
                   />
                 </div>
-                {errors.nom && (
-                  <p className="mt-1.5 text-sm text-red-600 flex items-center">
-                    <FaExclamationCircle className="w-3.5 h-3.5 mr-1.5" />
+                {touchedFields.has('nom') && errors.nom && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center">
+                    <FaExclamationCircle className="w-3 h-3 mr-1" />
                     {errors.nom}
                   </p>
                 )}
-                <p className="mt-1.5 text-xs text-gray-500">
-                  Le nom doit être unique et comporter entre 2 et 100 caractères
+                <p className="mt-1.5 text-[10px] text-text-secondary">
+                  2-100 caractères • Nom unique
                 </p>
               </div>
 
               {/* Champ Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-forest-deep mb-1">
                   Description
                 </label>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  rows={4}
-                  className={`w-full px-4 py-2.5 border ${
-                    errors.description ? 'border-red-500' : 'border-gray-300'
-                  } rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none`}
+                  onBlur={() => setTouchedFields(prev => new Set(prev).add('description'))}
+                  rows={3}
+                  className={`w-full px-3 py-2 text-sm border ${
+                    touchedFields.has('description') && errors.description 
+                      ? 'border-red-500 bg-red-50' 
+                      : 'border-border-light'
+                  } rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all resize-none bg-warm-white`}
                   placeholder="Description de la région (optionnelle)..."
                 />
-                {errors.description && (
-                  <p className="mt-1.5 text-sm text-red-600 flex items-center">
-                    <FaExclamationCircle className="w-3.5 h-3.5 mr-1.5" />
+                {touchedFields.has('description') && errors.description && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center">
+                    <FaExclamationCircle className="w-3 h-3 mr-1" />
                     {errors.description}
                   </p>
                 )}
-                <div className="mt-1.5 flex justify-end">
-                  <span className={`text-xs ${
-                    formData.description.length > 450 ? 'text-orange-500' : 'text-gray-500'
+                <div className="mt-1 flex justify-end">
+                  <span className={`text-[10px] ${
+                    formData.description.length > 450 ? 'text-sun-gold' : 'text-text-secondary'
                   }`}>
-                    {formData.description.length}/500 caractères
+                    {formData.description.length}/500
                   </span>
                 </div>
               </div>
 
               {/* Information supplémentaire */}
               {region && (
-                <div className="bg-blue-50 p-4 rounded-xl">
-                  <div className="flex items-start space-x-3">
-                    <FaMapMarkerAlt className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div className="bg-sky-soft/10 p-3 rounded-xl border border-sky-soft/30">
+                  <div className="flex items-start space-x-2">
+                    <FaMapMarkerAlt className="w-4 h-4 text-water-blue mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-blue-900">
+                      <p className="text-xs font-medium text-water-blue">
                         Informations système
                       </p>
-                      <p className="text-xs text-blue-700 mt-1">
+                      <p className="text-[10px] text-text-secondary mt-1">
                         Créée le {new Date(region.createdAt || '').toLocaleDateString('fr-FR')}
                         {region.updatedAt !== region.createdAt && 
                           ` • Modifiée le ${new Date(region.updatedAt || '').toLocaleDateString('fr-FR')}`
@@ -219,36 +242,40 @@ export default function RegionModal({ isOpen, onClose, onSave, region }: RegionM
             </div>
 
             {/* Pied de page */}
-            <div className="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
-              <div className="text-sm text-gray-500 flex items-center">
-                <FaExclamationCircle className="w-4 h-4 mr-1.5 text-gray-400" />
+            <div className="px-5 py-3 bg-ultra-light border-t border-border-light flex justify-between items-center">
+              <div className="text-[10px] text-text-secondary flex items-center">
+                <FaExclamationCircle className="w-3 h-3 mr-1" />
                 <span>
-                  Les champs marqués d'un <span className="text-red-500 mx-0.5">*</span> sont obligatoires
+                  <span className="text-sun-gold mr-0.5">*</span> requis
                 </span>
               </div>
-              <div className="flex space-x-3">
+              <div className="flex space-x-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center"
+                  className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-warm-white border border-border-light rounded-lg hover:bg-ultra-light transition-all"
                   disabled={isSubmitting}
                 >
-                  <FaTimes className="w-4 h-4 mr-2" />
+                  <FaTimes className="w-3 h-3 mr-1 inline-block" />
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 flex items-center shadow-lg shadow-blue-500/25"
+                  className={`px-3 py-1.5 text-xs font-medium text-warm-white bg-gradient-to-r ${
+                    region 
+                      ? 'from-water-blue to-sky-soft' 
+                      : 'from-olive-nature to-forest-deep'
+                  } rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center shadow-sm`}
                 >
                   {isSubmitting ? (
                     <>
-                      <FaSpinner className="animate-spin w-4 h-4 mr-2" />
-                      {region ? 'Modification...' : 'Création...'}
+                      <FaSpinner className="animate-spin w-3 h-3 mr-1" />
+                      {region ? 'Modif...' : 'Créat...'}
                     </>
                   ) : (
                     <>
-                      <FaSave className="w-4 h-4 mr-2" />
+                      <FaSave className="w-3 h-3 mr-1" />
                       {region ? 'Modifier' : 'Enregistrer'}
                     </>
                   )}

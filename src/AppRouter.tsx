@@ -22,6 +22,9 @@ import Profile from './pages/admin/Profile';
 import PersonnelAdmin from './pages/admin/PersonnelAdmin';
 import DonsAdmin from './pages/admin/DonsAdmin';
 import DonPage from './pages/public/DonPage';
+import ProjetsPage from './pages/public/ProjetsPage';
+import ProjetDetailPage from './pages/public/ProjetDetailPage';
+import ActualiteDetailPage from './pages/public/ActualiteDetailPage';
 // Composant pour remonter en haut à chaque changement de route
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -49,6 +52,9 @@ export default function AppRouter() {
           <Route path="faire-un-don" element={<DonPage />} />
           <Route path="login" element={<Login />} />
           <Route path="*" element={<NotFoundPage />} />
+          <Route path="projets" element={<ProjetsPage />} />
+          <Route path="projets/:id" element={<ProjetDetailPage />} />
+          <Route path="actualites/:id" element={<ActualiteDetailPage />} />
         </Route>
 
         {/* Routes admin protégées */}

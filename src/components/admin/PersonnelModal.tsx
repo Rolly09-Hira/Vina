@@ -1,6 +1,23 @@
+// src/components/admin/PersonnelModal.tsx
 import { useState, useEffect } from 'react';
 import personnelService from '../../services/personnelService';
 import type { Personnel } from '../../types/api';
+import { 
+  FaTimes, 
+  FaSpinner, 
+  FaCheck,
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaBriefcase,
+  FaBuilding,
+  FaCalendarAlt,
+  FaSortNumericDown,
+  FaLinkedin,
+  FaTwitter,
+  FaFacebook,
+  FaQuoteLeft
+} from 'react-icons/fa';
 
 interface PersonnelModalProps {
   isOpen: boolean;
@@ -36,6 +53,7 @@ export default function PersonnelModal({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
   // Liste des départements pour le dropdown
   const departements = [
@@ -51,59 +69,63 @@ export default function PersonnelModal({
   ];
 
   useEffect(() => {
-    if (personnel) {
-      setFormData({
-        nom: personnel.nom || '',
-        prenom: personnel.prenom || '',
-        email: personnel.email || '',
-        telephone: personnel.telephone || '',
-        poste: personnel.poste || '',
-        departement: personnel.departement || '',
-        dateEmbauche: personnel.dateEmbauche || '',
-        biographieFr: personnel.biographieFr || '',
-        biographieEn: personnel.biographieEn || '',
-        specialites: personnel.specialites || '',
-        linkedinUrl: personnel.linkedinUrl || '',
-        twitterUrl: personnel.twitterUrl || '',
-        facebookUrl: personnel.facebookUrl || '',
-        ordreAffichage: personnel.ordreAffichage || 0,
-      });
-      
-      if (personnel.photoUrl) {
-        const photoUrl = personnel.photoUrl.startsWith('http') 
-          ? personnel.photoUrl 
-          : `http://localhost:5005/${personnel.photoUrl}`;
-        setPhotoPreview(photoUrl);
+    if (isOpen) {
+      if (personnel) {
+        setFormData({
+          nom: personnel.nom || '',
+          prenom: personnel.prenom || '',
+          email: personnel.email || '',
+          telephone: personnel.telephone || '',
+          poste: personnel.poste || '',
+          departement: personnel.departement || '',
+          dateEmbauche: personnel.dateEmbauche || '',
+          biographieFr: personnel.biographieFr || '',
+          biographieEn: personnel.biographieEn || '',
+          specialites: personnel.specialites || '',
+          linkedinUrl: personnel.linkedinUrl || '',
+          twitterUrl: personnel.twitterUrl || '',
+          facebookUrl: personnel.facebookUrl || '',
+          ordreAffichage: personnel.ordreAffichage || 0,
+        });
+        
+        if (personnel.photoUrl) {
+          const photoUrl = personnel.photoUrl.startsWith('http') 
+            ? personnel.photoUrl 
+            : `https://web-production-03b53.up.railway.app/${personnel.photoUrl}`;
+          setPhotoPreview(photoUrl);
+        } else {
+          setPhotoPreview(null);
+        }
       } else {
+        setFormData({
+          nom: '',
+          prenom: '',
+          email: '',
+          telephone: '',
+          poste: '',
+          departement: '',
+          dateEmbauche: '',
+          biographieFr: '',
+          biographieEn: '',
+          specialites: '',
+          linkedinUrl: '',
+          twitterUrl: '',
+          facebookUrl: '',
+          ordreAffichage: 0,
+        });
         setPhotoPreview(null);
       }
-    } else {
-      setFormData({
-        nom: '',
-        prenom: '',
-        email: '',
-        telephone: '',
-        poste: '',
-        departement: '',
-        dateEmbauche: '',
-        biographieFr: '',
-        biographieEn: '',
-        specialites: '',
-        linkedinUrl: '',
-        twitterUrl: '',
-        facebookUrl: '',
-        ordreAffichage: 0,
-      });
-      setPhotoPreview(null);
+      setPhotoFile(null);
+      setErrors({});
+      setSuccessMessage(null);
+      setTouchedFields(new Set());
     }
-    setPhotoFile(null);
-    setErrors({});
-    setSuccessMessage(null);
   }, [personnel, isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setTouchedFields(prev => new Set(prev).add(name));
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -179,6 +201,8 @@ export default function PersonnelModal({
     e.preventDefault();
     
     if (!validateForm()) {
+      const firstError = document.querySelector('.border-red-500');
+      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -189,7 +213,6 @@ export default function PersonnelModal({
     try {
       const formDataToSend = new FormData();
       
-      // Ajouter tous les champs
       formDataToSend.append('nom', formData.nom.trim());
       formDataToSend.append('prenom', formData.prenom.trim());
       formDataToSend.append('email', formData.email.trim().toLowerCase());
@@ -210,21 +233,17 @@ export default function PersonnelModal({
       }
 
       if (personnel) {
-        // Mode modification
         await personnelService.updatePersonnel(personnel.id, formDataToSend);
         setSuccessMessage('Membre mis à jour avec succès');
       } else {
-        // Mode création
         await personnelService.createPersonnel(formDataToSend);
         setSuccessMessage('Membre créé avec succès');
       }
       
-      // Rafraîchir la liste
       if (onPersonnelUpdated) {
         await onPersonnelUpdated();
       }
       
-      // Fermer le modal après un délai
       setTimeout(() => {
         onClose(true);
       }, 1500);
@@ -255,65 +274,79 @@ export default function PersonnelModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        {/* Overlay */}
         <div 
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+          className="fixed inset-0 transition-opacity bg-premium-dark bg-opacity-60 backdrop-blur-sm"
           onClick={() => onClose()}
         />
 
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-          <form onSubmit={handleSubmit}>
-            <div className="bg-gradient-to-r from-green-600 to-teal-500 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-white">
-                  {isEditing ? `Modifier: ${fullName}` : 'Ajouter un membre du personnel'}
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => onClose()}
-                  className="text-white hover:text-gray-200 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        {/* Modal */}
+        <div className="inline-block w-full max-w-2xl my-8 overflow-hidden text-left align-middle transition-all transform bg-warm-white rounded-2xl shadow-2xl border border-border-light">
+          {/* En-tête compact */}
+          <div className={`px-5 py-3 ${isEditing ? 'bg-gradient-to-r from-water-blue to-sky-soft' : 'bg-gradient-to-r from-olive-nature to-forest-deep'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="p-1.5 bg-warm-white bg-opacity-20 rounded-lg">
+                  <FaUser className="w-4 h-4 text-warm-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-warm-white">
+                    {isEditing ? `Modifier: ${fullName}` : 'Ajouter un membre'}
+                  </h3>
+                  <p className="text-[10px] text-warm-white text-opacity-90">
+                    {isEditing ? 'Modifiez les informations' : 'Remplissez les informations'}
+                  </p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => onClose()}
+                className="p-1 text-warm-white hover:bg-warm-white hover:bg-opacity-20 rounded-lg transition-all"
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
             </div>
+          </div>
 
-            <div className="px-6 py-5 bg-white max-h-[70vh] overflow-y-auto">
+          {/* Formulaire */}
+          <form onSubmit={handleSubmit}>
+            <div className="px-5 py-3 space-y-3 max-h-[60vh] overflow-y-auto">
               {/* Message de succès */}
               {successMessage && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-600">{successMessage}</p>
+                <div className="p-2 bg-olive-nature/20 border border-olive-nature/30 rounded-lg">
+                  <p className="text-xs text-olive-nature flex items-center">
+                    <FaCheck className="w-3 h-3 mr-1" />
+                    {successMessage}
+                  </p>
                 </div>
               )}
 
               {/* Photo */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="bg-ultra-light p-3 rounded-xl border border-border-light">
+                <label className="block text-xs font-medium text-forest-deep mb-2 flex items-center">
+                  <FaUser className="w-3 h-3 mr-1 text-sun-gold" />
                   Photo de profil
                 </label>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
                     {photoPreview ? (
                       <div className="relative">
                         <img
                           src={photoPreview}
                           alt="Prévisualisation"
-                          className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
+                          className="h-16 w-16 rounded-full object-cover border-2 border-olive-nature"
                         />
                         <button
                           type="button"
                           onClick={handleRemovePhoto}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-sm"
+                          className="absolute -top-1 -right-1 bg-earth-brown text-warm-white rounded-full p-0.5 hover:bg-forest-deep shadow-sm"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
+                          <FaTimes className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
-                      <div className="h-20 w-20 rounded-full bg-gradient-to-r from-green-500 to-teal-400 flex items-center justify-center">
-                        <span className="text-white font-medium text-2xl">
+                      <div className="h-16 w-16 rounded-full bg-gradient-to-r from-olive-nature to-forest-deep flex items-center justify-center">
+                        <span className="text-warm-white font-medium text-lg">
                           {formData.prenom ? formData.prenom.charAt(0).toUpperCase() : '?'}
                           {formData.nom ? formData.nom.charAt(0).toUpperCase() : ''}
                         </span>
@@ -322,300 +355,304 @@ export default function PersonnelModal({
                   </div>
                   
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <label className="relative cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        <span>Choisir une photo</span>
-                        <input
-                          type="file"
-                          className="sr-only"
-                          accept="image/*"
-                          onChange={handlePhotoChange}
-                        />
-                      </label>
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      JPG, PNG, GIF ou WEBP (max. 5MB)
+                    <label className="relative cursor-pointer bg-warm-white py-1.5 px-3 border border-border-light rounded-lg text-xs font-medium text-forest-deep hover:bg-ultra-light transition-colors inline-block">
+                      <span>Choisir une photo</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                      />
+                    </label>
+                    <p className="mt-1 text-[10px] text-text-secondary">
+                      JPG, PNG, GIF, WEBP (max. 5MB)
                     </p>
                     {errors.photo && (
-                      <p className="mt-1 text-xs text-red-600">{errors.photo}</p>
+                      <p className="mt-1 text-[10px] text-red-600">{errors.photo}</p>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Prénom */}
+              {/* Informations personnelles */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div>
-                  <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-1">
-                    Prénom *
+                  <label className="block text-xs font-medium text-forest-deep mb-1">
+                    Prénom <span className="text-sun-gold">*</span>
                   </label>
                   <input
                     type="text"
-                    id="prenom"
                     name="prenom"
                     value={formData.prenom}
                     onChange={handleChange}
-                    className={`block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                      errors.prenom ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    onBlur={() => setTouchedFields(prev => new Set(prev).add('prenom'))}
+                    className={`w-full px-3 py-1.5 text-sm border ${
+                      touchedFields.has('prenom') && errors.prenom 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-border-light'
+                    } rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white`}
                     placeholder="Jean"
                   />
                   {errors.prenom && <p className="mt-1 text-xs text-red-600">{errors.prenom}</p>}
                 </div>
 
-                {/* Nom */}
                 <div>
-                  <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom *
+                  <label className="block text-xs font-medium text-forest-deep mb-1">
+                    Nom <span className="text-sun-gold">*</span>
                   </label>
                   <input
                     type="text"
-                    id="nom"
                     name="nom"
                     value={formData.nom}
                     onChange={handleChange}
-                    className={`block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                      errors.nom ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    onBlur={() => setTouchedFields(prev => new Set(prev).add('nom'))}
+                    className={`w-full px-3 py-1.5 text-sm border ${
+                      touchedFields.has('nom') && errors.nom 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-border-light'
+                    } rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white`}
                     placeholder="Dupont"
                   />
                   {errors.nom && <p className="mt-1 text-xs text-red-600">{errors.nom}</p>}
                 </div>
+              </div>
 
-                {/* Email */}
+              {/* Contact */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email *
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaEnvelope className="w-3 h-3 mr-1 text-water-blue" />
+                    Email <span className="text-sun-gold ml-1">*</span>
                   </label>
                   <input
                     type="email"
-                    id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    onBlur={() => setTouchedFields(prev => new Set(prev).add('email'))}
+                    className={`w-full px-3 py-1.5 text-sm border ${
+                      touchedFields.has('email') && errors.email 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-border-light'
+                    } rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all bg-warm-white`}
                     placeholder="jean.dupont@exemple.com"
                   />
                   {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
                 </div>
 
-                {/* Téléphone */}
                 <div>
-                  <label htmlFor="telephone" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaPhone className="w-3 h-3 mr-1 text-olive-nature" />
                     Téléphone
                   </label>
                   <input
                     type="tel"
-                    id="telephone"
                     name="telephone"
                     value={formData.telephone}
                     onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="+221 77 123 45 67"
+                    className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white"
+                    placeholder="+261 34 12 345 67"
                   />
                 </div>
+              </div>
 
-                {/* Poste */}
+              {/* Poste et département */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div>
-                  <label htmlFor="poste" className="block text-sm font-medium text-gray-700 mb-1">
-                    Poste *
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaBriefcase className="w-3 h-3 mr-1 text-sun-gold" />
+                    Poste <span className="text-sun-gold ml-1">*</span>
                   </label>
                   <input
                     type="text"
-                    id="poste"
                     name="poste"
                     value={formData.poste}
                     onChange={handleChange}
-                    className={`block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                      errors.poste ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    onBlur={() => setTouchedFields(prev => new Set(prev).add('poste'))}
+                    className={`w-full px-3 py-1.5 text-sm border ${
+                      touchedFields.has('poste') && errors.poste 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-border-light'
+                    } rounded-lg focus:ring-2 focus:ring-sun-gold focus:border-sun-gold transition-all bg-warm-white`}
                     placeholder="Directeur Exécutif"
                   />
                   {errors.poste && <p className="mt-1 text-xs text-red-600">{errors.poste}</p>}
                 </div>
 
-                {/* Département */}
                 <div>
-                  <label htmlFor="departement" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaBuilding className="w-3 h-3 mr-1 text-water-blue" />
                     Département
                   </label>
                   <select
-                    id="departement"
                     name="departement"
                     value={formData.departement}
                     onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all bg-warm-white"
                   >
-                    <option value="">Sélectionner un département</option>
+                    <option value="">Sélectionner</option>
                     {departements.map(dept => (
                       <option key={dept} value={dept}>{dept}</option>
                     ))}
                   </select>
                 </div>
+              </div>
 
-                {/* Date d'embauche */}
+              {/* Date et ordre */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div>
-                  <label htmlFor="dateEmbauche" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaCalendarAlt className="w-3 h-3 mr-1 text-sun-gold" />
                     Date d'embauche
                   </label>
                   <input
                     type="date"
-                    id="dateEmbauche"
                     name="dateEmbauche"
                     value={formData.dateEmbauche}
                     onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-sun-gold focus:border-sun-gold transition-all bg-warm-white"
                   />
                 </div>
 
-                {/* Ordre d'affichage */}
                 <div>
-                  <label htmlFor="ordreAffichage" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaSortNumericDown className="w-3 h-3 mr-1 text-water-blue" />
                     Ordre d'affichage
                   </label>
                   <input
                     type="number"
-                    id="ordreAffichage"
                     name="ordreAffichage"
                     value={formData.ordreAffichage}
                     onChange={handleChange}
                     min="0"
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all bg-warm-white"
                   />
                 </div>
+              </div>
 
-                {/* Spécialités */}
-                <div className="md:col-span-2">
-                  <label htmlFor="specialites" className="block text-sm font-medium text-gray-700 mb-1">
-                    Spécialités / Compétences
-                  </label>
-                  <input
-                    type="text"
-                    id="specialites"
-                    name="specialites"
-                    value={formData.specialites}
-                    onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Gestion de projet, Agroécologie, Formation, etc."
-                  />
-                </div>
+              {/* Spécialités */}
+              <div>
+                <label className="block text-xs font-medium text-forest-deep mb-1">
+                  Spécialités / Compétences
+                </label>
+                <input
+                  type="text"
+                  name="specialites"
+                  value={formData.specialites}
+                  onChange={handleChange}
+                  className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white"
+                  placeholder="Gestion de projet, Agroécologie, Formation..."
+                />
+              </div>
 
-                {/* Biographie FR */}
-                <div className="md:col-span-2">
-                  <label htmlFor="biographieFr" className="block text-sm font-medium text-gray-700 mb-1">
-                    Biographie (Français)
-                  </label>
-                  <textarea
-                    id="biographieFr"
-                    name="biographieFr"
-                    rows={3}
-                    value={formData.biographieFr}
-                    onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Présentation du membre en français..."
-                  />
-                </div>
+              {/* Biographies */}
+              <div>
+                <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                  <FaQuoteLeft className="w-3 h-3 mr-1 text-sun-gold" />
+                  Biographie (Français)
+                </label>
+                <textarea
+                  name="biographieFr"
+                  rows={2}
+                  value={formData.biographieFr}
+                  onChange={handleChange}
+                  className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-sun-gold focus:border-sun-gold transition-all resize-none bg-warm-white"
+                  placeholder="Présentation en français..."
+                />
+              </div>
 
-                {/* Biographie EN */}
-                <div className="md:col-span-2">
-                  <label htmlFor="biographieEn" className="block text-sm font-medium text-gray-700 mb-1">
-                    Biographie (Anglais)
-                  </label>
-                  <textarea
-                    id="biographieEn"
-                    name="biographieEn"
-                    rows={3}
-                    value={formData.biographieEn}
-                    onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Member presentation in English..."
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                  <FaQuoteLeft className="w-3 h-3 mr-1 text-water-blue" />
+                  Biographie (Anglais)
+                </label>
+                <textarea
+                  name="biographieEn"
+                  rows={2}
+                  value={formData.biographieEn}
+                  onChange={handleChange}
+                  className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all resize-none bg-warm-white"
+                  placeholder="Presentation in English..."
+                />
+              </div>
 
-                {/* Section Réseaux sociaux */}
-                <div className="md:col-span-2 mt-2">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Réseaux sociaux</h4>
-                </div>
-
-                {/* LinkedIn */}
-                <div className="md:col-span-2">
-                  <label htmlFor="linkedinUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                    LinkedIn
-                  </label>
-                  <input
-                    type="url"
-                    id="linkedinUrl"
-                    name="linkedinUrl"
-                    value={formData.linkedinUrl}
-                    onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="https://www.linkedin.com/in/..."
-                  />
-                </div>
-
-                {/* Twitter */}
-                <div>
-                  <label htmlFor="twitterUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                    Twitter
-                  </label>
-                  <input
-                    type="url"
-                    id="twitterUrl"
-                    name="twitterUrl"
-                    value={formData.twitterUrl}
-                    onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="https://twitter.com/..."
-                  />
-                </div>
-
-                {/* Facebook */}
-                <div>
-                  <label htmlFor="facebookUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                    Facebook
-                  </label>
-                  <input
-                    type="url"
-                    id="facebookUrl"
-                    name="facebookUrl"
-                    value={formData.facebookUrl}
-                    onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="https://www.facebook.com/..."
-                  />
+              {/* Réseaux sociaux */}
+              <div>
+                <h4 className="text-xs font-medium text-forest-deep mb-2">Réseaux sociaux</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <FaLinkedin className="w-4 h-4 text-water-blue mr-2 flex-shrink-0" />
+                    <input
+                      type="url"
+                      name="linkedinUrl"
+                      value={formData.linkedinUrl}
+                      onChange={handleChange}
+                      className="flex-1 px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all bg-warm-white"
+                      placeholder="https://www.linkedin.com/in/..."
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <FaTwitter className="w-4 h-4 text-sun-gold mr-2 flex-shrink-0" />
+                    <input
+                      type="url"
+                      name="twitterUrl"
+                      value={formData.twitterUrl}
+                      onChange={handleChange}
+                      className="flex-1 px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-sun-gold focus:border-sun-gold transition-all bg-warm-white"
+                      placeholder="https://twitter.com/..."
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <FaFacebook className="w-4 h-4 text-olive-nature mr-2 flex-shrink-0" />
+                    <input
+                      type="url"
+                      name="facebookUrl"
+                      value={formData.facebookUrl}
+                      onChange={handleChange}
+                      className="flex-1 px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white"
+                      placeholder="https://www.facebook.com/..."
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Erreur de soumission */}
               {errors.submit && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{errors.submit}</p>
+                <div className="p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-xs text-red-600">{errors.submit}</p>
                 </div>
               )}
             </div>
 
-            <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+            {/* Pied de page */}
+            <div className="px-5 py-2 bg-ultra-light border-t border-border-light flex justify-end space-x-2">
               <button
                 type="button"
                 onClick={() => onClose()}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-warm-white border border-border-light rounded-lg hover:bg-ultra-light transition-all"
               >
                 Annuler
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-500 text-white rounded-lg hover:from-green-700 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors flex items-center"
+                className={`px-3 py-1.5 text-xs font-medium text-warm-white bg-gradient-to-r ${
+                  isEditing 
+                    ? 'from-water-blue to-sky-soft' 
+                    : 'from-olive-nature to-forest-deep'
+                } rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center shadow-sm`}
               >
-                {loading && (
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
+                {loading ? (
+                  <>
+                    <FaSpinner className="animate-spin w-3 h-3 mr-1" />
+                    {isEditing ? 'Mise à jour...' : 'Ajout...'}
+                  </>
+                ) : (
+                  <>
+                    <FaCheck className="w-3 h-3 mr-1" />
+                    {isEditing ? 'Mettre à jour' : 'Ajouter'}
+                  </>
                 )}
-                {isEditing ? 'Mettre à jour' : 'Ajouter'}
               </button>
             </div>
           </form>

@@ -5,6 +5,7 @@ import ProjectsSection from '../../components/sections/ProjectsSection';
 import TestimonialSection from '../../components/sections/TestimonialSection';
 import PartenaireSection from '../../components/sections/PartenaireSection';
 import ActualiteSection from '../../components/sections/ActualiteSection';
+import ContactSection from '../../components/sections/ContactSection'; 
 export default function Home() {
   return (
     <div>
@@ -28,7 +29,7 @@ export default function Home() {
         <ActualiteSection />
       </section>
       <section id="contact">
-        {/* Si tu as une section contact */}
+        <ContactSection />
       </section>
     </div>
   );

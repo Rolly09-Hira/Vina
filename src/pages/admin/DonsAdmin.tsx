@@ -1,5 +1,4 @@
 // src/pages/admin/DonsAdmin.tsx
-
 import React, { useState, useEffect } from 'react';
 import { donService } from '../../services/donService';
 import type { DonIntention, DonIntentionStats } from '../../types/api';
@@ -18,7 +17,13 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+  MapPin,
+  Calendar,
+  Info
 } from 'lucide-react';
 
 const DonsAdmin: React.FC = () => {
@@ -32,16 +37,27 @@ const DonsAdmin: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statutFilter, setStatutFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [sortField, setSortField] = useState<string>('dateSoumission');
+  const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('DESC');
+  
+  // État pour gérer les messages d'erreur
+  const [errorMessage, setErrorMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   useEffect(() => {
     loadData();
-  }, [currentPage, statutFilter]);
+  }, [currentPage, statutFilter, sortField, sortDirection]);
+
+  // Fonction pour afficher un message temporaire
+  const showMessage = (type: 'success' | 'error', text: string) => {
+    setErrorMessage({ type, text });
+    setTimeout(() => setErrorMessage(null), 5000); // Disparaît après 5 secondes
+  };
 
   const loadData = async () => {
     setLoading(true);
     try {
       const [intentionsData, statsData] = await Promise.all([
-        donService.getAllIntentions(currentPage, 10, 'dateSoumission', 'DESC'),
+        donService.getAllIntentions(currentPage, 10, sortField, sortDirection),
         donService.getStatistiques()
       ]);
       setIntentions(intentionsData.content);
@@ -49,8 +65,18 @@ const DonsAdmin: React.FC = () => {
       setStats(statsData);
     } catch (error) {
       console.error('Erreur chargement des dons:', error);
+      showMessage('error', 'Erreur lors du chargement des données');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setSortField(field);
+      setSortDirection('ASC');
     }
   };
 
@@ -62,29 +88,66 @@ const DonsAdmin: React.FC = () => {
   const handleUpdateStatut = async (id: number, statut: string, notes?: string) => {
     try {
       await donService.updateStatut(id, statut, notes);
-      await loadData(); // Recharger les données
+      await loadData();
       setIsModalOpen(false);
-    } catch (error) {
+      showMessage('success', 'Statut mis à jour avec succès');
+    } catch (error: any) {
       console.error('Erreur mise à jour statut:', error);
+      showMessage('error', error.response?.data?.message || 'Erreur lors de la mise à jour');
     }
   };
 
   const handleAddNote = async (id: number, note: string) => {
     try {
       await donService.addNotes(id, note);
-      await loadData(); // Recharger pour voir la note
-    } catch (error) {
+      await loadData();
+      showMessage('success', 'Note ajoutée avec succès');
+    } catch (error: any) {
       console.error('Erreur ajout note:', error);
+      showMessage('error', error.response?.data?.message || 'Erreur lors de l\'ajout de la note');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    // Vérifier d'abord si le don est converti avant de demander confirmation
+    const intention = intentions.find(i => i.id === id);
+    if (intention?.statut === 'CONVERTI') {
+      showMessage('error', '❌ Impossible de supprimer un don déjà converti');
+      return;
+    }
+
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette intention de don ? Cette action est irréversible.')) {
+      return;
+    }
+
+    try {
+      await donService.deleteIntention(id);
+      await loadData();
+      if (selectedIntention?.id === id) {
+        setIsModalOpen(false);
+      }
+      showMessage('success', 'Intention de don supprimée avec succès');
+    } catch (error: any) {
+      console.error('Erreur suppression intention:', error);
+      
+      // Analyser l'erreur retournée par le backend
+      const errorMsg = error.response?.data?.message || error.message || '';
+      
+      if (errorMsg.includes('déjà convertie') || errorMsg.includes('converti')) {
+        showMessage('error', '❌ Impossible de supprimer un don déjà converti');
+      } else {
+        showMessage('error', errorMsg || 'Erreur lors de la suppression');
+      }
     }
   };
 
   const getStatutBadge = (statut: string) => {
     const badges: Record<string, { color: string; icon: any }> = {
-      EN_ATTENTE: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      CONTACTE: { color: 'bg-blue-100 text-blue-800', icon: Phone },
-      CONVERTI: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      PERDU: { color: 'bg-red-100 text-red-800', icon: XCircle },
-      REPORTE: { color: 'bg-purple-100 text-purple-800', icon: AlertCircle }
+      EN_ATTENTE: { color: 'bg-sun-gold/20 text-sun-gold border border-sun-gold/30', icon: Clock },
+      CONTACTE: { color: 'bg-water-blue/20 text-water-blue border border-water-blue/30', icon: Phone },
+      CONVERTI: { color: 'bg-olive-nature/20 text-olive-nature border border-olive-nature/30', icon: CheckCircle },
+      PERDU: { color: 'bg-earth-brown/20 text-earth-brown border border-earth-brown/30', icon: XCircle },
+      REPORTE: { color: 'bg-sky-soft/20 text-sky-soft border border-sky-soft/30', icon: AlertCircle }
     };
     const badge = badges[statut] || badges['EN_ATTENTE'];
     const Icon = badge.icon;
@@ -99,7 +162,7 @@ const DonsAdmin: React.FC = () => {
 
   const formatMontant = (montant?: number) => {
     if (!montant) return '-';
-    return new Intl.NumberFormat('fr-FR').format(montant) + ' FCFA';
+    return new Intl.NumberFormat('fr-FR').format(montant) + ' Ar';
   };
 
   const formatDate = (dateString: string) => {
@@ -110,83 +173,110 @@ const DonsAdmin: React.FC = () => {
     });
   };
 
+  const filteredIntentions = intentions.filter(intention => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      intention.nomComplet.toLowerCase().includes(term) ||
+      intention.email.toLowerCase().includes(term) ||
+      intention.telephone.includes(term)
+    );
+  });
+
   if (loading && !intentions.length) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="spinner"></div>
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-olive-nature border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-secondary">Chargement des dons...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-vert-fonce flex items-center gap-2">
-          <Heart className="text-rouge-terre" />
+        <h1 className="text-xl font-bold text-premium-dark flex items-center gap-2">
+          <Heart size={20} className="text-sun-gold" />
           Gestion des dons
         </h1>
         <button
           onClick={loadData}
-          className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 flex items-center gap-2"
+          className="bg-ultra-light text-text-secondary px-3 py-1.5 rounded-lg hover:bg-border-light transition-colors flex items-center gap-1.5 text-sm border border-border-light"
         >
-          <RefreshCw size={18} />
+          <RefreshCw size={16} />
           Actualiser
         </button>
       </div>
 
-      {/* Statistiques */}
+      {/* Message d'erreur/succès */}
+      {errorMessage && (
+        <div className={`p-4 rounded-lg flex items-center gap-2 ${
+          errorMessage.type === 'success' 
+            ? 'bg-olive-nature/20 text-olive-nature border border-olive-nature/30' 
+            : 'bg-earth-brown/20 text-earth-brown border border-earth-brown/30'
+        }`}>
+          {errorMessage.type === 'success' ? (
+            <CheckCircle size={20} />
+          ) : (
+            <XCircle size={20} />
+          )}
+          <p className="text-sm font-medium">{errorMessage.text}</p>
+        </div>
+      )}
+
+      {/* Statistiques avec couleurs VINA */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-warm-white rounded-lg shadow-lg p-3 border border-border-light hover-lift">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total intentions</p>
-                <p className="text-2xl font-bold">{stats.totalIntentions}</p>
+                <p className="text-xs text-text-secondary">Total</p>
+                <p className="text-lg font-bold text-premium-dark">{stats.totalIntentions}</p>
               </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <Heart size={24} className="text-blue-600" />
+              <div className="bg-olive-nature/20 p-2 rounded-full border border-olive-nature/30">
+                <Heart size={18} className="text-olive-nature" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-warm-white rounded-lg shadow-lg p-3 border border-border-light hover-lift">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">En attente</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.enAttente}</p>
+                <p className="text-xs text-text-secondary">En attente</p>
+                <p className="text-lg font-bold text-sun-gold">{stats.enAttente}</p>
               </div>
-              <div className="bg-yellow-100 p-3 rounded-full">
-                <Clock size={24} className="text-yellow-600" />
+              <div className="bg-sun-gold/20 p-2 rounded-full border border-sun-gold/30">
+                <Clock size={18} className="text-sun-gold" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-warm-white rounded-lg shadow-lg p-3 border border-border-light hover-lift">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Convertis</p>
-                <p className="text-2xl font-bold text-green-600">{stats.convertis}</p>
+                <p className="text-xs text-text-secondary">Convertis</p>
+                <p className="text-lg font-bold text-olive-nature">{stats.convertis}</p>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <CheckCircle size={24} className="text-green-600" />
+              <div className="bg-olive-nature/20 p-2 rounded-full border border-olive-nature/30">
+                <CheckCircle size={18} className="text-olive-nature" />
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Taux: {stats.tauxConversion}%
-            </p>
+            <p className="text-xs text-text-secondary mt-1">Taux: {stats.tauxConversion}%</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-warm-white rounded-lg shadow-lg p-3 border border-border-light hover-lift">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Montant total</p>
-                <p className="text-2xl font-bold text-vert-fonce">
-                  {formatMontant(stats.montantTotalConverti)}
+                <p className="text-xs text-text-secondary">Montant total</p>
+                <p className="text-lg font-bold text-water-blue">
+                  {stats.montantTotalConverti?.toLocaleString()} Ar
                 </p>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <DollarSign size={24} className="text-green-600" />
+              <div className="bg-water-blue/20 p-2 rounded-full border border-water-blue/30">
+                <DollarSign size={18} className="text-water-blue" />
               </div>
             </div>
           </div>
@@ -194,37 +284,38 @@ const DonsAdmin: React.FC = () => {
       )}
 
       {/* Filtres et recherche */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex flex-col md:flex-row gap-4">
+      <div className="bg-warm-white rounded-lg shadow-lg p-3 border border-border-light">
+        <div className="flex flex-col md:flex-row gap-2">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-text-secondary" size={16} />
             <input
               type="text"
-              placeholder="Rechercher par nom, email..."
+              placeholder="Rechercher un donateur..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-vert-jeune"
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-olive-nature focus:border-olive-nature bg-warm-white text-text-dark"
             />
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="flex items-center gap-1 px-3 py-1.5 text-sm border border-border-light rounded-lg hover:bg-ultra-light transition-colors text-text-secondary"
           >
-            <Filter size={20} />
+            <Filter size={16} />
             Filtres
+            {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50">
-            <Download size={20} />
-            Exporter
+          <button className="flex items-center gap-1 px-3 py-1.5 text-sm border border-border-light rounded-lg hover:bg-ultra-light transition-colors text-text-secondary">
+            <Download size={16} />
+            Export
           </button>
         </div>
 
         {showFilters && (
-          <div className="mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="mt-3 pt-3 border-t border-border-light grid grid-cols-1 md:grid-cols-3 gap-2">
             <select
               value={statutFilter}
               onChange={(e) => setStatutFilter(e.target.value)}
-              className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-vert-jeune"
+              className="border border-border-light rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-olive-nature bg-warm-white text-text-dark"
             >
               <option value="">Tous les statuts</option>
               <option value="EN_ATTENTE">En attente</option>
@@ -236,122 +327,163 @@ const DonsAdmin: React.FC = () => {
             <input
               type="date"
               placeholder="Date début"
-              className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-vert-jeune"
+              className="border border-border-light rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-olive-nature bg-warm-white text-text-dark"
             />
             <input
               type="date"
               placeholder="Date fin"
-              className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-vert-jeune"
+              className="border border-border-light rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-olive-nature bg-warm-white text-text-dark"
             />
           </div>
         )}
       </div>
 
       {/* Tableau des intentions */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-warm-white rounded-lg shadow-lg overflow-hidden border border-border-light">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full">
+            <thead className="bg-ultra-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Donateur
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Montant
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Statut
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                {['Donateur', 'Contact', 'Montant', 'Date', 'Statut', 'Actions'].map((header, idx) => (
+                  <th
+                    key={idx}
+                    className="px-4 py-2 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-border-light transition-colors"
+                    onClick={() => {
+                      if (idx === 0) handleSort('nomComplet');
+                      if (idx === 2) handleSort('montant');
+                      if (idx === 3) handleSort('dateSoumission');
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      {header}
+                      {sortField === 
+                        (idx === 0 ? 'nomComplet' : 
+                         idx === 2 ? 'montant' : 
+                         idx === 3 ? 'dateSoumission' : '') && (
+                        sortDirection === 'ASC' ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                      )}
+                    </div>
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {intentions.map((intention) => (
-                <tr key={intention.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900">{intention.nomComplet}</div>
-                    {intention.pays && (
-                      <div className="text-sm text-gray-500">{intention.pays}</div>
-                    )}
+            <tbody className="divide-y divide-border-light">
+              {filteredIntentions.map((intention) => (
+                <tr key={intention.id} className="hover:bg-ultra-light transition-colors text-sm">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-premium-dark">{intention.nomComplet}</div>
+                    <div className="flex items-center gap-1 text-xs text-text-secondary mt-1">
+                      <MapPin size={10} />
+                      {intention.pays || 'Pays non spécifié'}
+                      {intention.ville && `, ${intention.ville}`}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center text-sm">
-                      <Mail size={14} className="mr-1 text-gray-400" />
-                      <a href={`mailto:${intention.email}`} className="text-bleu-terre hover:underline">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <Mail size={12} className="text-text-secondary" />
+                      <a 
+                        href={`mailto:${intention.email}`} 
+                        className="text-water-blue hover:text-forest-deep transition-colors text-xs truncate max-w-[120px]"
+                      >
                         {intention.email}
                       </a>
                     </div>
-                    <div className="flex items-center text-sm mt-1">
-                      <Phone size={14} className="mr-1 text-gray-400" />
-                      <span>{intention.telephone}</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Phone size={12} className="text-text-secondary" />
+                      <span className="text-xs text-text-secondary">{intention.telephone}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="font-medium">{formatMontant(intention.montant)}</span>
+                  <td className="px-4 py-3">
+                    <span className="font-medium text-premium-dark text-sm">
+                      {formatMontant(intention.montant)}
+                    </span>
+                    {intention.montantType && (
+                      <div className="text-xs text-text-secondary">
+                        {intention.montantType === 'FIXE' ? 'Montant fixe' : 'Montant libre'}
+                      </div>
+                    )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(intention.dateSoumission)}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1 text-xs text-text-secondary">
+                      <Calendar size={10} />
+                      {formatDate(intention.dateSoumission)}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3">
                     {getStatutBadge(intention.statut)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <button
-                      onClick={() => handleViewDetails(intention)}
-                      className="text-bleu-terre hover:text-bleu-ciel font-medium text-sm"
-                    >
-                      Voir détails
-                    </button>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleViewDetails(intention)}
+                        className="text-water-blue hover:text-forest-deep text-xs font-medium px-2 py-1 rounded hover:bg-sky-soft/10 transition-colors"
+                        title="Voir les détails"
+                      >
+                        Voir
+                      </button>
+                      <button
+                        onClick={() => handleDelete(intention.id)}
+                        className={`text-xs font-medium px-2 py-1 rounded transition-colors flex items-center gap-1 ${
+                          intention.statut === 'CONVERTI'
+                            ? 'text-text-secondary cursor-not-allowed opacity-50'
+                            : 'text-sun-gold hover:text-earth-brown hover:bg-sun-gold/10'
+                        }`}
+                        title={intention.statut === 'CONVERTI' ? 'Impossible de supprimer un don converti' : 'Supprimer'}
+                        disabled={intention.statut === 'CONVERTI'}
+                      >
+                        <Trash2 size={14} />
+                        {intention.statut === 'CONVERTI' && <Info size={12} className="ml-1" />}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
+              {filteredIntentions.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-text-secondary">
+                    <Heart size={32} className="mx-auto mb-2 text-border-light" />
+                    <p>Aucune intention de don trouvée</p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t">
-            <div className="flex-1 flex justify-between items-center">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                disabled={currentPage === 0}
-                className="relative inline-flex items-center px-4 py-2 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                <ChevronLeft size={18} className="mr-1" />
-                Précédent
-              </button>
-              <span className="text-sm text-gray-700">
-                Page {currentPage + 1} sur {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                disabled={currentPage === totalPages - 1}
-                className="relative inline-flex items-center px-4 py-2 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                Suivant
-                <ChevronRight size={18} className="ml-1" />
-              </button>
-            </div>
+          <div className="px-4 py-3 flex items-center justify-between border-t border-border-light bg-ultra-light">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+              className="inline-flex items-center gap-1 px-3 py-1 border border-border-light rounded-md text-xs text-text-secondary bg-warm-white hover:bg-ultra-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft size={14} />
+              Précédent
+            </button>
+            <span className="text-xs text-text-secondary">
+              Page {currentPage + 1} sur {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentPage === totalPages - 1}
+              className="inline-flex items-center gap-1 px-3 py-1 border border-border-light rounded-md text-xs text-text-secondary bg-warm-white hover:bg-ultra-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Suivant
+              <ChevronRight size={14} />
+            </button>
           </div>
         )}
       </div>
 
-      {/* Modal de détails */}
+      {/* Modal */}
       <DonIntentionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         intention={selectedIntention}
         onUpdateStatut={handleUpdateStatut}
         onAddNote={handleAddNote}
+        onDelete={handleDelete}
       />
     </div>
   );

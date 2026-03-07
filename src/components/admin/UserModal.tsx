@@ -1,6 +1,23 @@
+// src/components/admin/UserModal.tsx
 import { useState, useEffect } from 'react';
 import userService from '../../services/userService';
+import authService from '../../services/authService'; // 👈 AJOUTER CET IMPORT
 import type { User } from '../../types/api';
+import { 
+  FaTimes, 
+  FaSpinner, 
+  FaCheck,
+  FaUser,
+  FaEnvelope,
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+  FaToggleOn,
+  FaUserTag,
+  FaCamera,
+  FaTrash,
+  FaExclamationTriangle // 👈 AJOUTER CET ICÔNE
+} from 'react-icons/fa';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -30,43 +47,61 @@ export default function UserModal({
   const [showPassword, setShowPassword] = useState(false);
   const [isActif, setIsActif] = useState(true);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+  
+  // 👈 ÉTAT POUR GÉRER LA DÉCONNEXION
+  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
+  const [emailChanged, setEmailChanged] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        nom: user.nom || '',
-        email: user.email || '',
-        motDePasse: '',
-        role: user.role || 'EDITEUR',
-      });
-      setIsActif(user.actif !== undefined ? user.actif : true);
-      
-      if (user.photoUrl) {
-        const photoUrl = user.photoUrl.startsWith('http') 
-          ? user.photoUrl 
-          : `http://localhost:5005/${user.photoUrl}`;
-        setPhotoPreview(photoUrl);
+    if (isOpen) {
+      if (user) {
+        setFormData({
+          nom: user.nom || '',
+          email: user.email || '',
+          motDePasse: '',
+          role: user.role || 'EDITEUR',
+        });
+        setIsActif(user.actif !== undefined ? user.actif : true);
+        
+        if (user.photoUrl) {
+          const photoUrl = user.photoUrl.startsWith('http') 
+            ? user.photoUrl 
+            : `https://web-production-03b53.up.railway.app/${user.photoUrl}`;
+          setPhotoPreview(photoUrl);
+        } else {
+          setPhotoPreview(null);
+        }
       } else {
+        setFormData({
+          nom: '',
+          email: '',
+          motDePasse: '',
+          role: 'EDITEUR',
+        });
+        setIsActif(true);
         setPhotoPreview(null);
       }
-    } else {
-      setFormData({
-        nom: '',
-        email: '',
-        motDePasse: '',
-        role: 'EDITEUR',
-      });
-      setIsActif(true);
-      setPhotoPreview(null);
+      setPhotoFile(null);
+      setErrors({});
+      setSuccessMessage(null);
+      setTouchedFields(new Set());
+      setShowLogoutWarning(false); // 👈 Réinitialiser
+      setEmailChanged(false); // 👈 Réinitialiser
     }
-    setPhotoFile(null);
-    setErrors({});
-    setSuccessMessage(null);
   }, [user, isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    setTouchedFields(prev => new Set(prev).add(name));
+    
+    // 👈 DÉTECTER SI L'EMAIL CHANGE
+    if (name === 'email' && user && user.email !== value) {
+      setEmailChanged(true);
+    }
+    
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -125,21 +160,40 @@ export default function UserModal({
     if (!user && !formData.motDePasse) {
       newErrors.motDePasse = 'Le mot de passe est obligatoire';
     } else if (formData.motDePasse && formData.motDePasse.length < 6) {
-      newErrors.motDePasse = 'Le mot de passe doit avoir au moins 6 caractères';
+      newErrors.motDePasse = 'Minimum 6 caractères';
     }
 
     if (photoFile && !['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(photoFile.type)) {
-      newErrors.photo = 'Format d\'image non supporté (JPG, PNG, GIF, WEBP)';
+      newErrors.photo = 'Format non supporté';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // 👈 FONCTION POUR GÉRER LA DÉCONNEXION
+  const handleLogoutAndRedirect = async () => {
+    try {
+      await authService.logout();
+      window.location.href = '/login?session=expired&reason=email_changed';
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      window.location.href = '/login';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
+      const firstError = document.querySelector('.border-red-500');
+      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // 👈 SI L'UTILISATEUR MODIFIE SON PROPRE EMAIL, AFFICHER UN AVERTISSEMENT
+    if (isEditing && isCurrentUser && emailChanged && !showLogoutWarning) {
+      setShowLogoutWarning(true);
       return;
     }
 
@@ -151,29 +205,15 @@ export default function UserModal({
       if (user) {
         // Mode modification
         if (photoFile) {
-          // AVEC PHOTO - Utiliser FormData
           const formDataToSend = new FormData();
-          
-          // IMPORTANT: Ajouter tous les champs même s'ils sont optionnels
-          // mais s'assurer qu'ils ne sont pas undefined
           formDataToSend.append('nom', formData.nom.trim());
           formDataToSend.append('email', formData.email.trim().toLowerCase());
           formDataToSend.append('role', formData.role);
-          
-          // Pour actif, envoyer comme string "true" ou "false"
           formDataToSend.append('actif', isActif ? 'true' : 'false');
-          
-          // Ajouter le fichier
           formDataToSend.append('photoFile', photoFile);
-
-          console.log('Sending FormData for update:');
-          for (let pair of formDataToSend.entries()) {
-            console.log(pair[0] + ':', pair[1]);
-          }
 
           await userService.updateUserWithPhoto(user.id, formDataToSend);
         } else {
-          // SANS PHOTO - Utiliser JSON
           await userService.updateUser(user.id, {
             nom: formData.nom.trim(),
             email: formData.email.trim().toLowerCase(),
@@ -182,7 +222,7 @@ export default function UserModal({
           });
         }
         
-        setSuccessMessage('Utilisateur mis à jour avec succès');
+        setSuccessMessage('Utilisateur mis à jour');
         
       } else {
         // Mode création
@@ -196,49 +236,39 @@ export default function UserModal({
           formDataToSend.append('photoFile', photoFile);
         }
 
-        console.log('Sending FormData for create:');
-        for (let pair of formDataToSend.entries()) {
-          console.log(pair[0] + ':', pair[1]);
-        }
-
         await userService.createUserWithFormData(formDataToSend);
-        
-        setSuccessMessage('Utilisateur créé avec succès');
+        setSuccessMessage('Utilisateur créé');
       }
       
-      // Rafraîchir la liste
       if (onUserUpdated) {
         await onUserUpdated();
       }
       
-      // Fermer le modal après un délai
-      setTimeout(() => {
-        onClose(true);
-      }, 500);
+      // 👈 SI C'EST SON PROPRE COMPTE ET QUE L'EMAIL A CHANGÉ, DÉCONNECTER
+      if (isEditing && isCurrentUser && emailChanged) {
+        setTimeout(() => {
+          handleLogoutAndRedirect();
+        }, 1000);
+      } else {
+        setTimeout(() => {
+          onClose(true);
+        }, 500);
+      }
       
     } catch (error: any) {
       console.error('Submit error:', error);
       
-      // Afficher les détails de l'erreur
-      if (error.response?.data) {
-        console.error('Error response data:', error.response.data);
-        
-        // Extraire le message d'erreur
-        let errorMessage = 'Erreur serveur';
-        if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data;
-        } else if (error.response.data.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.response.data.error) {
-          errorMessage = error.response.data.error;
-        }
-        
-        setErrors({ submit: errorMessage });
+      let errorMessage = 'Erreur serveur';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
       } else if (error.message) {
-        setErrors({ submit: error.message });
-      } else {
-        setErrors({ submit: 'Une erreur est survenue' });
+        errorMessage = error.message;
       }
+      
+      setErrors({ submit: errorMessage });
+      setShowLogoutWarning(false); // 👈 CACHER L'AVERTISSEMENT EN CAS D'ERREUR
     } finally {
       setLoading(false);
     }
@@ -252,65 +282,116 @@ export default function UserModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        {/* Overlay */}
         <div 
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+          className="fixed inset-0 transition-opacity bg-premium-dark bg-opacity-60 backdrop-blur-sm"
           onClick={() => onClose()}
         />
 
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <form onSubmit={handleSubmit}>
-            <div className="bg-gradient-to-r from-green-600 to-teal-500 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-white">
-                  {isEditing ? "Modifier l'utilisateur" : 'Créer un nouvel utilisateur'}
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => onClose()}
-                  className="text-white hover:text-gray-200 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        {/* Modal */}
+        <div className="inline-block w-full max-w-md my-8 overflow-hidden text-left align-middle transition-all transform bg-warm-white rounded-2xl shadow-2xl border border-border-light">
+          {/* En-tête compact */}
+          <div className={`px-4 py-3 ${isEditing ? 'bg-gradient-to-r from-water-blue to-sky-soft' : 'bg-gradient-to-r from-olive-nature to-forest-deep'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="p-1.5 bg-warm-white bg-opacity-20 rounded-lg">
+                  <FaUser className="w-4 h-4 text-warm-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-warm-white">
+                    {isEditing ? "Modifier l'utilisateur" : 'Nouvel utilisateur'}
+                  </h3>
+                  <p className="text-[10px] text-warm-white text-opacity-90">
+                    {isEditing ? "Modifiez les informations" : "Remplissez les informations"}
+                  </p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => onClose()}
+                className="p-1 text-warm-white hover:bg-warm-white hover:bg-opacity-20 rounded-lg transition-all"
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
             </div>
+          </div>
 
-            <div className="px-6 py-5 bg-white">
+          {/* Formulaire */}
+          <form onSubmit={handleSubmit}>
+            <div className="px-4 py-3 space-y-3 max-h-[60vh] overflow-y-auto">
               {/* Message de succès */}
               {successMessage && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-600">{successMessage}</p>
+                <div className="p-2 bg-olive-nature/20 border border-olive-nature/30 rounded-lg">
+                  <p className="text-xs text-olive-nature flex items-center">
+                    <FaCheck className="w-3 h-3 mr-1" />
+                    {successMessage}
+                    {isEditing && isCurrentUser && emailChanged && " - Déconnexion imminente..."}
+                  </p>
+                </div>
+              )}
+
+              {/* 👈 AVERTISSEMENT DE DÉCONNEXION */}
+              {showLogoutWarning && (
+                <div className="p-3 bg-sun-gold/20 border border-sun-gold/30 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <FaExclamationTriangle className="w-4 h-4 text-sun-gold flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-medium text-sun-gold mb-1">
+                        Attention - Modification de votre email
+                      </p>
+                      <p className="text-[10px] text-text-secondary mb-2">
+                        En modifiant votre adresse email, vous serez automatiquement déconnecté et devrez vous reconnecter avec votre nouvelle adresse.
+                      </p>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowLogoutWarning(false);
+                            handleSubmit(new Event('submit') as any);
+                          }}
+                          className="px-2 py-1 text-[10px] font-medium text-warm-white bg-gradient-to-r from-sun-gold to-soft-sun rounded-lg hover:opacity-90"
+                        >
+                          Continuer
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowLogoutWarning(false)}
+                          className="px-2 py-1 text-[10px] font-medium text-text-secondary bg-warm-white border border-border-light rounded-lg hover:bg-ultra-light"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {/* Photo de profil */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="bg-ultra-light p-3 rounded-xl border border-border-light">
+                <label className="block text-xs font-medium text-forest-deep mb-2 flex items-center">
+                  <FaCamera className="w-3 h-3 mr-1 text-sun-gold" />
                   Photo de profil
                 </label>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
                     {photoPreview ? (
                       <div className="relative">
                         <img
                           src={photoPreview}
                           alt="Prévisualisation"
-                          className="h-16 w-16 rounded-full object-cover border-2 border-gray-200"
+                          className="h-14 w-14 rounded-full object-cover border-2 border-olive-nature"
                         />
                         <button
                           type="button"
                           onClick={handleRemovePhoto}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-sm"
+                          className="absolute -top-1 -right-1 bg-earth-brown text-warm-white rounded-full p-0.5 hover:bg-forest-deep shadow-sm"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
+                          <FaTrash className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
-                      <div className="h-16 w-16 rounded-full bg-gradient-to-r from-green-500 to-teal-400 flex items-center justify-center">
-                        <span className="text-white font-medium text-xl">
+                      <div className="h-14 w-14 rounded-full bg-gradient-to-r from-olive-nature to-forest-deep flex items-center justify-center">
+                        <span className="text-warm-white font-medium text-lg">
                           {formData.nom ? formData.nom.charAt(0).toUpperCase() : '?'}
                         </span>
                       </div>
@@ -318,164 +399,170 @@ export default function UserModal({
                   </div>
                   
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <label className="relative cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        <span>Choisir une photo</span>
-                        <input
-                          type="file"
-                          className="sr-only"
-                          accept="image/*"
-                          onChange={handlePhotoChange}
-                        />
-                      </label>
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      JPG, PNG, GIF ou WEBP (max. 5MB)
+                    <label className="relative cursor-pointer bg-warm-white py-1.5 px-3 border border-border-light rounded-lg text-xs font-medium text-forest-deep hover:bg-ultra-light transition-colors inline-block">
+                      <span>Choisir</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                      />
+                    </label>
+                    <p className="mt-1 text-[10px] text-text-secondary">
+                      JPG, PNG (max. 5MB)
                     </p>
                     {errors.photo && (
-                      <p className="mt-1 text-xs text-red-600">{errors.photo}</p>
+                      <p className="mt-1 text-[10px] text-red-600">{errors.photo}</p>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Nom */}
-              <div className="mb-4">
-                <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom complet *
+              <div>
+                <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                  <FaUser className="w-3 h-3 mr-1 text-water-blue" />
+                  Nom complet <span className="text-sun-gold ml-1">*</span>
                 </label>
                 <input
                   type="text"
-                  id="nom"
                   name="nom"
                   value={formData.nom}
                   onChange={handleChange}
-                  className={`block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    errors.nom ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  onBlur={() => setTouchedFields(prev => new Set(prev).add('nom'))}
+                  className={`w-full px-3 py-1.5 text-sm border ${
+                    touchedFields.has('nom') && errors.nom 
+                      ? 'border-red-500 bg-red-50' 
+                      : 'border-border-light'
+                  } rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all bg-warm-white`}
                   placeholder="Jean Dupont"
                 />
-                {errors.nom && (
+                {touchedFields.has('nom') && errors.nom && (
                   <p className="mt-1 text-xs text-red-600">{errors.nom}</p>
                 )}
               </div>
 
               {/* Email */}
-              <div className="mb-4">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
+              <div>
+                <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                  <FaEnvelope className="w-3 h-3 mr-1 text-olive-nature" />
+                  Email <span className="text-sun-gold ml-1">*</span>
                 </label>
                 <input
                   type="email"
-                  id="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  onBlur={() => setTouchedFields(prev => new Set(prev).add('email'))}
+                  className={`w-full px-3 py-1.5 text-sm border ${
+                    touchedFields.has('email') && errors.email 
+                      ? 'border-red-500 bg-red-50' 
+                      : 'border-border-light'
+                  } rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white ${
+                    isEditing && isCurrentUser ? 'border-sun-gold/50' : ''
                   }`}
-                  placeholder="jean.dupont@example.com"
+                  placeholder="jean.dupont@exemple.com"
                 />
-                {errors.email && (
+                {touchedFields.has('email') && errors.email && (
                   <p className="mt-1 text-xs text-red-600">{errors.email}</p>
+                )}
+                {isEditing && isCurrentUser && (
+                  <p className="mt-1 text-[10px] text-sun-gold">
+                    ⚠️ Modifier votre email vous déconnectera
+                  </p>
                 )}
               </div>
 
               {/* Mot de passe */}
               {!isEditing && (
-                <div className="mb-4">
-                  <label htmlFor="motDePasse" className="block text-sm font-medium text-gray-700 mb-1">
-                    Mot de passe *
+                <div>
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaLock className="w-3 h-3 mr-1 text-sun-gold" />
+                    Mot de passe <span className="text-sun-gold ml-1">*</span>
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      id="motDePasse"
                       name="motDePasse"
                       value={formData.motDePasse}
                       onChange={handleChange}
-                      className={`block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                        errors.motDePasse ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      onBlur={() => setTouchedFields(prev => new Set(prev).add('motDePasse'))}
+                      className={`w-full px-3 py-1.5 text-sm border ${
+                        touchedFields.has('motDePasse') && errors.motDePasse 
+                          ? 'border-red-500 bg-red-50' 
+                          : 'border-border-light'
+                      } rounded-lg focus:ring-2 focus:ring-sun-gold focus:border-sun-gold transition-all bg-warm-white pr-8`}
                       placeholder="••••••••"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                      className="absolute inset-y-0 right-0 pr-2 flex items-center text-text-secondary hover:text-forest-deep"
                     >
-                      {showPassword ? (
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                      ) : (
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
+                      {showPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
                     </button>
                   </div>
-                  {errors.motDePasse && (
+                  {touchedFields.has('motDePasse') && errors.motDePasse && (
                     <p className="mt-1 text-xs text-red-600">{errors.motDePasse}</p>
                   )}
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-[10px] text-text-secondary">
                     Minimum 6 caractères
                   </p>
                 </div>
               )}
 
               {/* Rôle */}
-              <div className="mb-4">
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                  Rôle *
+              <div>
+                <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                  <FaUserTag className="w-3 h-3 mr-1 text-water-blue" />
+                  Rôle <span className="text-sun-gold ml-1">*</span>
                 </label>
                 <select
-                  id="role"
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                   disabled={isEditing && isCurrentUser}
+                  className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all bg-warm-white"
                 >
                   <option value="EDITEUR">Éditeur</option>
                   <option value="ADMIN">Administrateur</option>
                 </select>
                 {isEditing && isCurrentUser && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    Vous ne pouvez pas modifier votre propre rôle
+                  <p className="mt-1 text-[10px] text-text-secondary">
+                    Vous ne pouvez pas modifier votre rôle
                   </p>
                 )}
               </div>
 
               {/* Statut (uniquement en modification) */}
               {isEditing && (
-                <div className="mb-4">
+                <div className="bg-ultra-light p-3 rounded-xl border border-border-light">
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Statut du compte
+                    <label className="text-xs font-medium text-forest-deep flex items-center">
+                      <FaToggleOn className="w-3 h-3 mr-1 text-olive-nature" />
+                      Statut
                     </label>
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setIsActif(!isActif)}
-                        className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
-                          isActif ? 'bg-green-600' : 'bg-gray-200'
-                        }`}
-                        disabled={isEditing && isCurrentUser}
+                        onClick={() => !(isEditing && isCurrentUser) && setIsActif(!isActif)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                          isActif ? 'bg-olive-nature' : 'bg-border-light'
+                        } ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        disabled={isCurrentUser}
                       >
-                        <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
-                          isActif ? 'translate-x-5' : 'translate-x-0'
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-warm-white transition-transform ${
+                          isActif ? 'translate-x-5' : 'translate-x-0.5'
                         }`} />
                       </button>
-                      <span className="ml-3 text-sm text-gray-900">
+                      <span className={`text-xs font-medium ${isActif ? 'text-olive-nature' : 'text-text-secondary'}`}>
                         {isActif ? 'Actif' : 'Inactif'}
                       </span>
                     </div>
                   </div>
-                  {isEditing && isCurrentUser && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Vous ne pouvez pas modifier le statut de votre propre compte
+                  {isCurrentUser && (
+                    <p className="mt-1 text-[10px] text-text-secondary">
+                      Vous ne pouvez pas modifier votre statut
                     </p>
                   )}
                 </div>
@@ -483,32 +570,41 @@ export default function UserModal({
 
               {/* Erreur de soumission */}
               {errors.submit && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{errors.submit}</p>
+                <div className="p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-xs text-red-600">{errors.submit}</p>
                 </div>
               )}
             </div>
 
-            <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+            {/* Pied de page */}
+            <div className="px-4 py-2 bg-ultra-light border-t border-border-light flex justify-end space-x-2">
               <button
                 type="button"
                 onClick={() => onClose()}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-warm-white border border-border-light rounded-lg hover:bg-ultra-light transition-all"
               >
                 Annuler
               </button>
               <button
                 type="submit"
-                disabled={loading}
-                className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-500 text-white rounded-lg hover:from-green-700 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors flex items-center"
+                disabled={loading || showLogoutWarning}
+                className={`px-3 py-1.5 text-xs font-medium text-warm-white bg-gradient-to-r ${
+                  isEditing 
+                    ? 'from-water-blue to-sky-soft' 
+                    : 'from-olive-nature to-forest-deep'
+                } rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center shadow-sm`}
               >
-                {loading && (
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
+                {loading ? (
+                  <>
+                    <FaSpinner className="animate-spin w-3 h-3 mr-1" />
+                    {isEditing ? 'Modif...' : 'Créat...'}
+                  </>
+                ) : (
+                  <>
+                    <FaCheck className="w-3 h-3 mr-1" />
+                    {isEditing ? 'Mettre à jour' : 'Créer'}
+                  </>
                 )}
-                {isEditing ? 'Mettre à jour' : "Créer l'utilisateur"}
               </button>
             </div>
           </form>

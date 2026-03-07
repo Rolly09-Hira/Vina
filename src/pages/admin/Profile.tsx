@@ -28,7 +28,7 @@ export default function Profile() {
       if (user.photoUrl) {
         const photoUrl = user.photoUrl.startsWith('http') 
           ? user.photoUrl 
-          : `http://localhost:5005/${user.photoUrl}`;
+          : `https://web-production-03b53.up.railway.app/${user.photoUrl}`;
         setPhotoPreview(photoUrl);
       } else {
         setPhotoPreview(null);
@@ -68,7 +68,7 @@ export default function Profile() {
   const handleRemovePhoto = () => {
     setPhotoFile(null);
     if (user?.photoUrl) {
-      setPhotoPreview(`http://localhost:5005/${user.photoUrl}`);
+      setPhotoPreview(`https://web-production-03b53.up.railway.app/${user.photoUrl}`);
     } else {
       setPhotoPreview(null);
     }

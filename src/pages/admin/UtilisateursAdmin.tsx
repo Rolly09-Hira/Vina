@@ -144,7 +144,7 @@ export default function UtilisateursAdmin() {
     if (photoUrl.startsWith('http')) {
       return photoUrl;
     }
-    return `http://localhost:5005/${photoUrl}`;
+    return `https://web-production-03b53.up.railway.app/${photoUrl}`;
   };
 
   const getInitials = (nom: string) => {
@@ -155,19 +155,19 @@ export default function UtilisateursAdmin() {
     <div className="space-y-6">
       {/* Messages de succès */}
       {success && (
-        <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+        <div className="bg-olive-nature/20 border-l-4 border-olive-nature p-4 rounded-r-lg">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-5 w-5 text-olive-nature" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-green-700">{success}</p>
+              <p className="text-sm text-olive-nature">{success}</p>
             </div>
             <button 
               onClick={() => setSuccess(null)}
-              className="ml-auto text-green-500 hover:text-green-700"
+              className="ml-auto text-olive-nature hover:text-forest-deep"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -179,19 +179,19 @@ export default function UtilisateursAdmin() {
 
       {/* Messages d'erreur */}
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+        <div className="bg-earth-brown/20 border-l-4 border-earth-brown p-4 rounded-r-lg">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-5 w-5 text-earth-brown" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-earth-brown">{error}</p>
             </div>
             <button 
               onClick={() => setError(null)}
-              className="ml-auto text-red-500 hover:text-red-700"
+              className="ml-auto text-earth-brown hover:text-forest-deep"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -204,14 +204,14 @@ export default function UtilisateursAdmin() {
       {/* En-tête */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestion des utilisateurs</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-premium-dark">Gestion des utilisateurs</h1>
+          <p className="text-sm text-text-secondary mt-1">
             Gérez les administrateurs et éditeurs de la plateforme
           </p>
         </div>
         <button
           onClick={handleCreateUser}
-          className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white font-medium rounded-lg hover:from-forest-deep hover:to-premium-dark transition-all shadow-md hover-lift"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -221,11 +221,11 @@ export default function UtilisateursAdmin() {
       </div>
 
       {/* Filtres */}
-      <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+      <div className="bg-warm-white rounded-lg shadow-lg p-5 border border-border-light">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -234,7 +234,7 @@ export default function UtilisateursAdmin() {
               placeholder="Rechercher par nom ou email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="block w-full pl-10 pr-3 py-2 border border-border-light rounded-lg bg-ultra-light text-text-dark focus:outline-none focus:ring-2 focus:ring-olive-nature focus:border-olive-nature"
             />
           </div>
           
@@ -242,7 +242,7 @@ export default function UtilisateursAdmin() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as typeof roleFilter)}
-              className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="px-3 py-2 border border-border-light rounded-lg bg-ultra-light text-text-dark focus:outline-none focus:ring-2 focus:ring-olive-nature focus:border-olive-nature"
             >
               <option value="ALL">Tous les rôles</option>
               <option value="ADMIN">Administrateurs</option>
@@ -252,7 +252,7 @@ export default function UtilisateursAdmin() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-              className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="px-3 py-2 border border-border-light rounded-lg bg-ultra-light text-text-dark focus:outline-none focus:ring-2 focus:ring-olive-nature focus:border-olive-nature"
             >
               <option value="ALL">Tous les statuts</option>
               <option value="ACTIF">Actifs</option>
@@ -264,92 +264,92 @@ export default function UtilisateursAdmin() {
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div className="bg-warm-white rounded-lg shadow-lg p-5 border border-border-light hover-lift">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 bg-olive-nature/20 rounded-lg border border-olive-nature/30">
+              <svg className="w-6 h-6 text-olive-nature" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13.5 0c-.66 0-1.293-.14-1.872-.396a6 6 0 01-3.156-5.268 6 6 0 013.156-5.268A5.99 5.99 0 0121 4v1a6 6 0 01-6 6z" />
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Total utilisateurs</p>
-              <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+              <p className="text-sm font-medium text-text-secondary">Total utilisateurs</p>
+              <p className="text-2xl font-bold text-premium-dark">{users.length}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div className="bg-warm-white rounded-lg shadow-lg p-5 border border-border-light hover-lift">
           <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 bg-olive-nature/20 rounded-lg border border-olive-nature/30">
+              <svg className="w-6 h-6 text-olive-nature" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Actifs</p>
-              <p className="text-2xl font-bold text-green-600">{users.filter(u => u.actif).length}</p>
+              <p className="text-sm font-medium text-text-secondary">Actifs</p>
+              <p className="text-2xl font-bold text-olive-nature">{users.filter(u => u.actif).length}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div className="bg-warm-white rounded-lg shadow-lg p-5 border border-border-light hover-lift">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 bg-sun-gold/20 rounded-lg border border-sun-gold/30">
+              <svg className="w-6 h-6 text-sun-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Administrateurs</p>
-              <p className="text-2xl font-bold text-purple-600">{users.filter(u => u.role === 'ADMIN').length}</p>
+              <p className="text-sm font-medium text-text-secondary">Administrateurs</p>
+              <p className="text-2xl font-bold text-sun-gold">{users.filter(u => u.role === 'ADMIN').length}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tableau des utilisateurs */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-warm-white rounded-lg shadow-lg border border-border-light overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="spinner"></div>
-            <span className="ml-3 text-gray-600">Chargement des utilisateurs...</span>
+            <div className="w-10 h-10 border-4 border-olive-nature border-t-transparent rounded-full animate-spin"></div>
+            <span className="ml-3 text-text-secondary">Chargement des utilisateurs...</span>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-border-light">
+                <thead className="bg-ultra-light">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Utilisateur
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Email
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Rôle
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Date de création
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-warm-white divide-y divide-border-light">
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-text-secondary">
                         <div className="flex flex-col items-center">
-                          <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-12 h-12 text-border-light mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13.5 0c-.66 0-1.293-.14-1.872-.396a6 6 0 01-3.156-5.268 6 6 0 013.156-5.268A5.99 5.99 0 0121 4v1a6 6 0 01-6 6z" />
                           </svg>
-                          <p className="text-gray-600 font-medium">Aucun utilisateur trouvé</p>
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="text-forest-deep font-medium">Aucun utilisateur trouvé</p>
+                          <p className="text-sm text-border-light mt-1">
                             Essayez de modifier vos filtres ou créez un nouvel utilisateur
                           </p>
                         </div>
@@ -357,13 +357,13 @@ export default function UtilisateursAdmin() {
                     </tr>
                   ) : (
                     filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={user.id} className="hover:bg-ultra-light transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
                               {getAvatarUrl(user.photoUrl) ? (
                                 <img
-                                  className="h-10 w-10 rounded-full object-cover border border-gray-200"
+                                  className="h-10 w-10 rounded-full object-cover border border-border-light"
                                   src={getAvatarUrl(user.photoUrl)!}
                                   alt={user.nom}
                                   onError={(e) => {
@@ -376,56 +376,56 @@ export default function UtilisateursAdmin() {
                                   }}
                                 />
                               ) : null}
-                              <div className={`h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-teal-400 flex items-center justify-center ${getAvatarUrl(user.photoUrl) ? 'hidden' : ''} fallback-avatar`}>
-                                <span className="text-white font-medium text-sm">
+                              <div className={`h-10 w-10 rounded-full bg-gradient-to-r from-olive-nature to-forest-deep flex items-center justify-center ${getAvatarUrl(user.photoUrl) ? 'hidden' : ''} fallback-avatar`}>
+                                <span className="text-warm-white font-medium text-sm">
                                   {getInitials(user.nom)}
                                 </span>
                               </div>
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-premium-dark">
                                 {user.nom}
                                 {user.id === currentUser?.id && (
-                                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-olive-nature/20 text-olive-nature border border-olive-nature/30">
                                     Vous
                                   </span>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-text-secondary">
                                 ID: {user.id}
                               </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{user.email}</div>
+                          <div className="text-sm text-premium-dark">{user.email}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                             user.role === 'ADMIN'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-sun-gold/20 text-sun-gold border-sun-gold/30'
+                              : 'bg-water-blue/20 text-water-blue border-water-blue/30'
                           }`}>
                             {user.role === 'ADMIN' ? 'Administrateur' : 'Éditeur'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                             user.actif
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                              ? 'bg-olive-nature/20 text-olive-nature border-olive-nature/30'
+                              : 'bg-earth-brown/20 text-earth-brown border-earth-brown/30'
                           }`}>
                             {user.actif ? 'Actif' : 'Inactif'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                           {formatDate(user.createdAt)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
                             <button
                               onClick={() => handleEditUser(user)}
-                              className="text-indigo-600 hover:text-indigo-900 p-1 rounded-md hover:bg-indigo-50 transition-colors"
+                              className="text-water-blue hover:text-forest-deep p-1 rounded-md hover:bg-sky-soft/10 transition-colors"
                               title="Modifier"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -439,8 +439,8 @@ export default function UtilisateursAdmin() {
                                 disabled={user.id === currentUser?.id}
                                 className={`p-1 rounded-md transition-colors ${
                                   user.id === currentUser?.id
-                                    ? 'text-gray-300 cursor-not-allowed'
-                                    : 'text-red-600 hover:text-red-900 hover:bg-red-50'
+                                    ? 'text-border-light cursor-not-allowed'
+                                    : 'text-sun-gold hover:text-earth-brown hover:bg-sun-gold/10'
                                 }`}
                                 title={user.id === currentUser?.id ? 'Vous ne pouvez pas désactiver votre propre compte' : 'Désactiver'}
                               >
@@ -451,7 +451,7 @@ export default function UtilisateursAdmin() {
                             ) : (
                               <button
                                 onClick={() => handleActivateUser(user)}
-                                className="text-green-600 hover:text-green-900 p-1 rounded-md hover:bg-green-50 transition-colors"
+                                className="text-olive-nature hover:text-forest-deep p-1 rounded-md hover:bg-olive-nature/10 transition-colors"
                                 title="Activer"
                               >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -468,13 +468,13 @@ export default function UtilisateursAdmin() {
               </table>
             </div>
             
-            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+            <div className="bg-ultra-light px-6 py-3 border-t border-border-light">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-700">
-                  Affichage de <span className="font-medium">{filteredUsers.length}</span> sur{' '}
-                  <span className="font-medium">{users.length}</span> utilisateurs
+                <p className="text-sm text-text-secondary">
+                  Affichage de <span className="font-medium text-premium-dark">{filteredUsers.length}</span> sur{' '}
+                  <span className="font-medium text-premium-dark">{users.length}</span> utilisateurs
                 </p>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-border-light">
                   Dernière mise à jour: {new Date().toLocaleTimeString('fr-FR')}
                 </div>
               </div>
@@ -503,7 +503,7 @@ export default function UtilisateursAdmin() {
         title="Désactiver l'utilisateur"
         message={`Êtes-vous sûr de vouloir désactiver l'utilisateur "${userToDelete?.nom}" ?`}
         confirmText="Désactiver"
-        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        confirmButtonClass="bg-sun-gold hover:bg-earth-brown text-warm-white"
       />
     </div>
   );

@@ -1,6 +1,20 @@
 // src/components/admin/ActualiteModal.tsx
 import { useState, useEffect } from 'react';
 import type { Actualite } from '../../services/actualiteService';
+import { 
+  FaTimes, 
+  FaNewspaper, 
+  FaCalendarAlt, 
+  FaMapMarkerAlt,
+  FaImage,
+  FaUpload,
+  FaTrash,
+  FaSpinner,
+  FaCheck,
+  FaArrowLeft,
+  FaArrowRight,
+  FaExclamationCircle
+} from 'react-icons/fa';
 
 interface ActualiteModalProps {
   isOpen: boolean;
@@ -9,7 +23,18 @@ interface ActualiteModalProps {
   actualite?: Actualite | null;
 }
 
+// Mapping des couleurs
+const getTypeColors = (type: string) => {
+  const colors = {
+    olive: { bg: 'bg-olive-nature', light: 'bg-olive-nature/10', text: 'text-olive-nature', border: 'border-olive-nature/30' },
+    water: { bg: 'bg-water-blue', light: 'bg-water-blue/10', text: 'text-water-blue', border: 'border-water-blue/30' },
+    earth: { bg: 'bg-earth-brown', light: 'bg-earth-brown/10', text: 'text-earth-brown', border: 'border-earth-brown/30' }
+  };
+  return colors[type as keyof typeof colors] || colors.olive;
+};
+
 export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: ActualiteModalProps) {
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     titreFr: '',
     titreEn: '',
@@ -26,6 +51,7 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (actualite) {
@@ -42,7 +68,7 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
       });
       
       if (actualite.imageUrl) {
-        setImagePreview(`http://localhost:5005/${actualite.imageUrl}`);
+        setImagePreview(`https://web-production-03b53.up.railway.app/${actualite.imageUrl}`);
       }
     } else {
       const today = new Date().toISOString().split('T')[0];
@@ -59,34 +85,31 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
       });
       setImageFile(null);
       setImagePreview('');
+      setCurrentStep(1);
     }
     setErrors({});
-  }, [actualite]);
+    setTouchedFields(new Set());
+  }, [actualite, isOpen]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validation de la taille (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, image: 'L\'image ne doit pas dépasser 10MB' }));
+        setErrors(prev => ({ ...prev, image: 'Max 10MB' }));
         return;
       }
 
-      // Validation du type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type.toLowerCase())) {
-        setErrors(prev => ({ ...prev, image: 'Format d\'image non supporté. Utilisez JPG, JPEG, PNG, GIF ou WEBP.' }));
+        setErrors(prev => ({ ...prev, image: 'Format non supporté' }));
         return;
       }
 
       setImageFile(file);
       setErrors(prev => ({ ...prev, image: '' }));
       
-      // Créer une preview
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -94,86 +117,64 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    }));
     
-    // Effacer l'erreur quand l'utilisateur commence à taper
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    setTouchedFields(prev => new Set(prev).add(name));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const validateForm = () => {
+  const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.titreFr.trim()) newErrors.titreFr = 'Le titre français est requis';
-    if (!formData.titreEn.trim()) newErrors.titreEn = 'Le titre anglais est requis';
-    if (!formData.contenuFr.trim()) newErrors.contenuFr = 'Le contenu français est requis';
-    if (!formData.contenuEn.trim()) newErrors.contenuEn = 'Le contenu anglais est requis';
-    if (!formData.datePublication) newErrors.datePublication = 'La date de publication est requise';
-    
-    if (formData.dateEvenement && new Date(formData.dateEvenement) < new Date(formData.datePublication)) {
-      newErrors.dateEvenement = 'La date d\'événement doit être après la date de publication';
+    if (step === 1) {
+      if (!formData.titreFr.trim()) newErrors.titreFr = 'Requis';
+      if (!formData.titreEn.trim()) newErrors.titreEn = 'Required';
     }
 
-    if (formData.type === 'evenement' && !formData.lieu.trim()) {
-      newErrors.lieu = 'Le lieu est requis pour un événement';
+    if (step === 2) {
+      if (!formData.contenuFr.trim()) newErrors.contenuFr = 'Requis';
+      if (!formData.contenuEn.trim()) newErrors.contenuEn = 'Required';
+    }
+
+    if (step === 3) {
+      if (!formData.datePublication) newErrors.datePublication = 'Requis';
+      if (formData.type === 'evenement' && !formData.lieu.trim()) {
+        newErrors.lieu = 'Lieu requis';
+      }
+      if (formData.dateEvenement && new Date(formData.dateEvenement) < new Date(formData.datePublication)) {
+        newErrors.dateEvenement = 'Date invalide';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const nextStep = () => validateStep(currentStep) && setCurrentStep(prev => Math.min(prev + 1, 3));
+  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Important : empêche la soumission automatique
     
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateStep(3) || isSubmitting) return;
 
     setIsSubmitting(true);
 
     try {
       const formDataToSend = new FormData();
-      
-      // Ajouter les champs texte
-      formDataToSend.append('titreFr', formData.titreFr);
-      formDataToSend.append('titreEn', formData.titreEn);
-      formDataToSend.append('contenuFr', formData.contenuFr);
-      formDataToSend.append('contenuEn', formData.contenuEn);
-      formDataToSend.append('type', formData.type);
-      formDataToSend.append('datePublication', formData.datePublication);
-      
-      if (formData.dateEvenement) {
-        formDataToSend.append('dateEvenement', formData.dateEvenement);
-      }
-      
-      if (formData.lieu) {
-        formDataToSend.append('lieu', formData.lieu);
-      }
-      
-      formDataToSend.append('important', formData.important.toString());
-      
-      // Ajouter l'image si elle existe
-      if (imageFile) {
-        formDataToSend.append('imageFile', imageFile);
-      }
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value) formDataToSend.append(key, value.toString());
+      });
+      if (imageFile) formDataToSend.append('imageFile', imageFile);
 
       await onSave(formDataToSend);
       onClose();
     } catch (error) {
-      console.error('Erreur lors de l\'enregistrement:', error);
-      alert('Une erreur est survenue lors de l\'enregistrement');
+      console.error('Erreur:', error);
+      alert('Erreur lors de l\'enregistrement');
     } finally {
       setIsSubmitting(false);
     }
@@ -181,287 +182,370 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
 
   if (!isOpen) return null;
 
+  const typeColors = getTypeColors(
+    formData.type === 'evenement' ? 'water' : 
+    formData.type === 'rapport' ? 'earth' : 'olive'
+  );
+
+  const steps = [
+    { number: 1, title: 'Titres', icon: FaNewspaper },
+    { number: 2, title: 'Contenu', icon: FaNewspaper },
+    { number: 3, title: 'Détails', icon: FaCalendarAlt }
+  ];
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {/* Overlay */}
-        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose} />
+        <div className="fixed inset-0 transition-opacity bg-premium-dark bg-opacity-60 backdrop-blur-sm" onClick={onClose} />
 
-        {/* Modal */}
-        <div className="inline-block w-full max-w-4xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-lg shadow-xl">
-          {/* En-tête */}
-          <div className="px-6 py-4 bg-gray-50 border-b">
+        <div className="inline-block w-full max-w-3xl my-8 overflow-hidden text-left align-middle transition-all transform bg-warm-white rounded-2xl shadow-2xl border border-border-light">
+          {/* En-tête avec gradient */}
+          <div className={`px-6 py-4 bg-gradient-to-r ${typeColors.bg} bg-opacity-90`}>
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {actualite ? 'Modifier l\'actualité' : 'Nouvelle actualité'}
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {actualite ? 'Modifiez les informations de l\'actualité' : 'Remplissez les informations de la nouvelle actualité'}
-                </p>
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-warm-white/20 rounded-xl">
+                  {actualite ? <FaNewspaper className="w-5 h-5 text-warm-white" /> : <FaNewspaper className="w-5 h-5 text-warm-white" />}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-warm-white">
+                    {actualite ? 'Modifier' : 'Nouvelle actualité'}
+                  </h3>
+                  <p className="text-xs text-warm-white/90">
+                    {actualite ? 'Modifiez les informations' : 'Remplissez les informations'}
+                  </p>
+                </div>
               </div>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-500 transition-colors"
+              <button 
+                type="button"
+                onClick={onClose} 
+                className="p-1 text-warm-white hover:bg-warm-white/20 rounded-lg"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <FaTimes className="w-5 h-5" />
               </button>
+            </div>
+
+            {/* Stepper */}
+            <div className="flex items-center justify-center mt-4 space-x-2">
+              {steps.map((step, index) => (
+                <div key={step.number} className="flex items-center">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                      currentStep === step.number
+                        ? 'bg-warm-white text-forest-deep scale-110 shadow-md'
+                        : currentStep > step.number
+                        ? 'bg-sun-gold text-forest-deep'
+                        : 'bg-warm-white/30 text-warm-white'
+                    }`}>
+                      {currentStep > step.number ? <FaCheck className="w-3 h-3" /> : step.number}
+                    </div>
+                    <span className="text-[10px] text-warm-white mt-1">{step.title}</span>
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className={`w-8 h-1 mx-1 rounded-full ${
+                      currentStep > step.number ? 'bg-sun-gold' : 'bg-warm-white/30'
+                    }`} />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Formulaire */}
-          <form onSubmit={handleSubmit} encType="multipart/form-data">
-            <div className="px-6 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
-              {/* Section Titres */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Titre français *
-                  </label>
-                  <input
-                    type="text"
-                    name="titreFr"
-                    value={formData.titreFr}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${errors.titreFr ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-                    placeholder="Ex: Nouveau projet lancé"
-                  />
-                  {errors.titreFr && <p className="mt-1 text-sm text-red-600">{errors.titreFr}</p>}
+          <form onSubmit={handleSubmit}>
+            <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
+              {/* Barre de progression */}
+              <div className="mb-4">
+                <div className="flex justify-between text-xs text-text-secondary mb-1">
+                  <span>Étape {currentStep}/3</span>
+                  <span className="font-semibold text-olive-nature">{Math.round((currentStep / 3) * 100)}%</span>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Titre anglais *
-                  </label>
-                  <input
-                    type="text"
-                    name="titreEn"
-                    value={formData.titreEn}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${errors.titreEn ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-                    placeholder="Ex: New project launched"
-                  />
-                  {errors.titreEn && <p className="mt-1 text-sm text-red-600">{errors.titreEn}</p>}
+                <div className="w-full h-1.5 bg-border-light rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-olive-nature to-sun-gold rounded-full transition-all"
+                       style={{ width: `${(currentStep / 3) * 100}%` }} />
                 </div>
               </div>
 
-              {/* Section Type et Dates */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type *
-                  </label>
-                  <select
-                    name="type"
-                    value={formData.type}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="nouvelle">Nouvelle</option>
-                    <option value="evenement">Événement</option>
-                    <option value="rapport">Rapport</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date de publication *
-                  </label>
-                  <input
-                    type="date"
-                    name="datePublication"
-                    value={formData.datePublication}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${errors.datePublication ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-                  />
-                  {errors.datePublication && <p className="mt-1 text-sm text-red-600">{errors.datePublication}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date d'événement
-                  </label>
-                  <input
-                    type="date"
-                    name="dateEvenement"
-                    value={formData.dateEvenement}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${errors.dateEvenement ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-                  />
-                  {errors.dateEvenement && <p className="mt-1 text-sm text-red-600">{errors.dateEvenement}</p>}
-                  <p className="mt-1 text-xs text-gray-500">
-                    Optionnel - Pour les événements
-                  </p>
-                </div>
-              </div>
-
-              {/* Lieu (conditionnel pour événements) */}
-              {formData.type === 'evenement' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Lieu de l'événement *
-                  </label>
-                  <input
-                    type="text"
-                    name="lieu"
-                    value={formData.lieu}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${errors.lieu ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-                    placeholder="Ex: Antananarivo, Madagascar"
-                  />
-                  {errors.lieu && <p className="mt-1 text-sm text-red-600">{errors.lieu}</p>}
+              {/* Étape 1: Titres */}
+              {currentStep === 1 && (
+                <div className="space-y-4">
+                  <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
+                    <h4 className="text-sm font-semibold text-forest-deep mb-3">Titres</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-forest-deep mb-1">
+                          Titre français <span className="text-sun-gold">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="titreFr"
+                          value={formData.titreFr}
+                          onChange={handleChange}
+                          onBlur={() => setTouchedFields(prev => new Set(prev).add('titreFr'))}
+                          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-olive-nature ${
+                            errors.titreFr && touchedFields.has('titreFr') ? 'border-red-500' : 'border-border-light'
+                          }`}
+                          placeholder="Ex: Nouveau projet lancé"
+                        />
+                        {errors.titreFr && touchedFields.has('titreFr') && (
+                          <p className="mt-1 text-xs text-red-600">{errors.titreFr}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-forest-deep mb-1">
+                          Titre anglais <span className="text-sun-gold">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="titreEn"
+                          value={formData.titreEn}
+                          onChange={handleChange}
+                          onBlur={() => setTouchedFields(prev => new Set(prev).add('titreEn'))}
+                          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-olive-nature ${
+                            errors.titreEn && touchedFields.has('titreEn') ? 'border-red-500' : 'border-border-light'
+                          }`}
+                          placeholder="Ex: New project launched"
+                        />
+                        {errors.titreEn && touchedFields.has('titreEn') && (
+                          <p className="mt-1 text-xs text-red-600">{errors.titreEn}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* Section Contenus */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contenu français *
-                  </label>
-                  <textarea
-                    name="contenuFr"
-                    value={formData.contenuFr}
-                    onChange={handleChange}
-                    rows={6}
-                    className={`w-full px-3 py-2 border ${errors.contenuFr ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-                    placeholder="Contenu en français..."
-                  />
-                  {errors.contenuFr && <p className="mt-1 text-sm text-red-600">{errors.contenuFr}</p>}
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contenu anglais *
-                  </label>
-                  <textarea
-                    name="contenuEn"
-                    value={formData.contenuEn}
-                    onChange={handleChange}
-                    rows={6}
-                    className={`w-full px-3 py-2 border ${errors.contenuEn ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-                    placeholder="Content in English..."
-                  />
-                  {errors.contenuEn && <p className="mt-1 text-sm text-red-600">{errors.contenuEn}</p>}
-                </div>
-              </div>
-
-              {/* Section Image */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image de l'actualité
-                </label>
+              {/* Étape 2: Contenu */}
+              {currentStep === 2 && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center w-full">
-                    <label className={`flex flex-col items-center justify-center w-full h-64 border-2 ${errors.image ? 'border-red-500' : 'border-gray-300'} border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors`}>
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        {imagePreview ? (
-                          <div className="relative w-full h-full">
-                            <img 
-                              src={imagePreview} 
-                              alt="Preview" 
-                              className="max-h-48 mx-auto object-contain rounded-lg"
-                            />
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setImageFile(null);
-                                setImagePreview('');
-                              }}
-                              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
-                            <p className="mb-2 text-sm text-gray-500">
-                              <span className="font-semibold">Cliquez pour uploader</span> ou glissez-déposez
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              PNG, JPG, GIF, WEBP (Max. 10MB)
-                            </p>
-                          </>
+                  <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
+                    <h4 className="text-sm font-semibold text-forest-deep mb-3">Contenu</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-forest-deep mb-1">
+                          Contenu français <span className="text-sun-gold">*</span>
+                        </label>
+                        <textarea
+                          name="contenuFr"
+                          value={formData.contenuFr}
+                          onChange={handleChange}
+                          rows={5}
+                          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-olive-nature resize-none ${
+                            errors.contenuFr && touchedFields.has('contenuFr') ? 'border-red-500' : 'border-border-light'
+                          }`}
+                          placeholder="Contenu en français..."
+                        />
+                        {errors.contenuFr && touchedFields.has('contenuFr') && (
+                          <p className="mt-1 text-xs text-red-600">{errors.contenuFr}</p>
                         )}
                       </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                      />
-                    </label>
+                      <div>
+                        <label className="block text-xs font-medium text-forest-deep mb-1">
+                          Contenu anglais <span className="text-sun-gold">*</span>
+                        </label>
+                        <textarea
+                          name="contenuEn"
+                          value={formData.contenuEn}
+                          onChange={handleChange}
+                          rows={5}
+                          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-olive-nature resize-none ${
+                            errors.contenuEn && touchedFields.has('contenuEn') ? 'border-red-500' : 'border-border-light'
+                          }`}
+                          placeholder="Content in English..."
+                        />
+                        {errors.contenuEn && touchedFields.has('contenuEn') && (
+                          <p className="mt-1 text-xs text-red-600">{errors.contenuEn}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  {errors.image && <p className="text-sm text-red-600">{errors.image}</p>}
-                  <p className="text-xs text-gray-500">
-                    L'image sera affichée avec l'actualité. Taille recommandée: 1920x1080px
-                  </p>
                 </div>
-              </div>
+              )}
 
-              {/* Section Important */}
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="important"
-                  name="important"
-                  checked={formData.important}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                />
-                <label htmlFor="important" className="ml-2 text-sm font-medium text-gray-700">
-                  Marquer comme important
-                </label>
-                <span className="ml-2 px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                  Sera mis en avant
-                </span>
-              </div>
+              {/* Étape 3: Détails */}
+              {currentStep === 3 && (
+                <div className="space-y-4">
+                  {/* Type et dates */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
+                      <h4 className="text-xs font-semibold text-forest-deep mb-2">Type</h4>
+                      <select
+                        name="type"
+                        value={formData.type}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature bg-white"
+                      >
+                        <option value="nouvelle">Nouvelle</option>
+                        <option value="evenement">Événement</option>
+                        <option value="rapport">Rapport</option>
+                      </select>
+                    </div>
+
+                    <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
+                      <h4 className="text-xs font-semibold text-forest-deep mb-2">Important</h4>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="important"
+                          name="important"
+                          checked={formData.important}
+                          onChange={handleChange}
+                          className="w-4 h-4 text-sun-gold border-border-light rounded focus:ring-sun-gold"
+                        />
+                        <label htmlFor="important" className="text-sm text-text-secondary">
+                          À la une
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dates */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
+                      <h4 className="text-xs font-semibold text-forest-deep mb-2">Publication *</h4>
+                      <input
+                        type="date"
+                        name="datePublication"
+                        value={formData.datePublication}
+                        onChange={handleChange}
+                        className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-olive-nature ${
+                          errors.datePublication ? 'border-red-500' : 'border-border-light'
+                        }`}
+                      />
+                      {errors.datePublication && (
+                        <p className="mt-1 text-xs text-red-600">{errors.datePublication}</p>
+                      )}
+                    </div>
+
+                    <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
+                      <h4 className="text-xs font-semibold text-forest-deep mb-2">Événement</h4>
+                      <input
+                        type="date"
+                        name="dateEvenement"
+                        value={formData.dateEvenement}
+                        onChange={handleChange}
+                        className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-olive-nature ${
+                          errors.dateEvenement ? 'border-red-500' : 'border-border-light'
+                        }`}
+                      />
+                      {errors.dateEvenement && (
+                        <p className="mt-1 text-xs text-red-600">{errors.dateEvenement}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Lieu (conditionnel) */}
+                  {formData.type === 'evenement' && (
+                    <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
+                      <h4 className="text-xs font-semibold text-forest-deep mb-2">Lieu *</h4>
+                      <div className="relative">
+                        <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-water-blue w-4 h-4" />
+                        <input
+                          type="text"
+                          name="lieu"
+                          value={formData.lieu}
+                          onChange={handleChange}
+                          className={`w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-olive-nature ${
+                            errors.lieu ? 'border-red-500' : 'border-border-light'
+                          }`}
+                          placeholder="Antananarivo"
+                        />
+                      </div>
+                      {errors.lieu && <p className="mt-1 text-xs text-red-600">{errors.lieu}</p>}
+                    </div>
+                  )}
+
+                  {/* Image */}
+                  <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
+                    <h4 className="text-xs font-semibold text-forest-deep mb-2 flex items-center gap-1">
+                      <FaImage className="text-sun-gold" /> Image
+                    </h4>
+                    <div className="flex items-center justify-center w-full">
+                      <label className={`flex flex-col items-center justify-center w-full h-32 border-2 ${
+                        errors.image ? 'border-red-500' : 'border-sun-gold/30'
+                      } border-dashed rounded-xl cursor-pointer bg-white hover:bg-ultra-light transition-all`}>
+                        <div className="flex flex-col items-center justify-center relative w-full h-full">
+                          {imagePreview ? (
+                            <div className="relative w-full h-full flex items-center justify-center">
+                              <img src={imagePreview} alt="Preview" className="max-h-24 max-w-full object-contain" />
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setImageFile(null); setImagePreview(''); }}
+                                className="absolute top-1 right-1 bg-earth-brown text-warm-white p-1 rounded-full hover:bg-forest-deep"
+                              >
+                                <FaTrash className="w-2 h-2" />
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <FaUpload className="w-5 h-5 text-sun-gold mb-1" />
+                              <p className="text-xs text-text-secondary">Uploader une image</p>
+                              <p className="text-[10px] text-text-secondary">PNG, JPG (10MB max)</p>
+                            </>
+                          )}
+                        </div>
+                        <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                      </label>
+                    </div>
+                    {errors.image && <p className="mt-1 text-xs text-red-600">{errors.image}</p>}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Pied de page */}
-            <div className="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                * Champs obligatoires
+            <div className="px-6 py-3 bg-ultra-light border-t border-border-light flex justify-between items-center">
+              <div className="text-xs text-text-secondary">
+                <FaExclamationCircle className="inline w-3 h-3 mr-1" />
+                <span className="text-sun-gold">*</span> requis
               </div>
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              <div className="flex gap-2">
+                <button 
+                  type="button" 
+                  onClick={onClose} 
+                  className="px-4 py-2 text-xs font-medium border border-border-light rounded-lg hover:bg-white"
                   disabled={isSubmitting}
                 >
                   Annuler
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      {actualite ? 'Modification...' : 'Création...'}
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {actualite ? 'Modifier l\'actualité' : 'Créer l\'actualité'}
-                    </>
-                  )}
-                </button>
+                
+                {currentStep > 1 && (
+                  <button 
+                    type="button" 
+                    onClick={prevStep} 
+                    className="px-4 py-2 text-xs font-medium border border-border-light rounded-lg hover:bg-white flex items-center gap-1"
+                    disabled={isSubmitting}
+                  >
+                    <FaArrowLeft className="w-3 h-3" /> Préc
+                  </button>
+                )}
+                
+                {currentStep < 3 ? (
+                  <button 
+                    type="button" 
+                    onClick={nextStep} 
+                    className="px-4 py-2 text-xs font-medium text-white bg-gradient-to-r from-olive-nature to-forest-deep rounded-lg hover:from-forest-deep flex items-center gap-1"
+                    disabled={isSubmitting}
+                  >
+                    Suiv <FaArrowRight className="w-3 h-3" />
+                  </button>
+                ) : (
+                  <button 
+                    type="button" 
+                    disabled={isSubmitting}
+                    className="px-4 py-2 text-xs font-medium text-white bg-gradient-to-r from-olive-nature to-forest-deep rounded-lg hover:from-forest-deep disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <FaSpinner className="animate-spin w-3 h-3" />
+                        En cours...
+                      </>
+                    ) : (
+                      <>
+                        <FaCheck className="w-3 h-3" />
+                        {actualite ? 'Modifier' : 'Créer'}
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </form>

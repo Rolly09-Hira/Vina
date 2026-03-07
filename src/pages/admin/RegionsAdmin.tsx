@@ -122,8 +122,8 @@ export default function RegionsAdmin() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <FaSpinner className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Chargement des régions...</p>
+          <FaSpinner className="w-10 h-10 text-olive-nature animate-spin mx-auto mb-4" />
+          <p className="text-text-secondary">Chargement des régions...</p>
         </div>
       </div>
     );
@@ -136,18 +136,18 @@ export default function RegionsAdmin() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center space-x-3 mb-2">
-              <div className="p-2 bg-blue-100 rounded-xl">
-                <FaMapMarkerAlt className="w-6 h-6 text-blue-600" />
+              <div className="p-2 bg-olive-nature/20 rounded-xl border border-olive-nature/30">
+                <FaMapMarkerAlt className="w-6 h-6 text-olive-nature" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">Gestion des Régions</h1>
+              <h1 className="text-2xl font-bold text-premium-dark">Gestion des Régions</h1>
             </div>
-            <p className="text-gray-600 ml-14">
+            <p className="text-text-secondary ml-14">
               Gérez les régions d'intervention de l'association VINA
             </p>
           </div>
           <button
             onClick={handleCreate}
-            className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/25"
+            className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white font-semibold rounded-xl hover:from-forest-deep hover:to-premium-dark transition-all shadow-lg hover-lift"
           >
             <FaPlus className="w-4 h-4 mr-2" />
             Nouvelle région
@@ -168,48 +168,48 @@ export default function RegionsAdmin() {
       <div className="mb-6">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <FaSearch className="h-4 w-4 text-gray-400" />
+            <FaSearch className="h-4 w-4 text-text-secondary" />
           </div>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Rechercher une région par nom ou description..."
-            className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            className="w-full pl-11 pr-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-olive-nature focus:border-olive-nature bg-warm-white text-text-dark transition-all"
           />
         </div>
       </div>
 
       {/* Tableau */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-warm-white rounded-xl shadow-lg overflow-hidden border border-border-light">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-border-light">
+            <thead className="bg-ultra-light">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Région
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Date création
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-warm-white divide-y divide-border-light">
               {paginatedRegions.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center">
-                    <div className="text-gray-500">
-                      <FaMapMarkerAlt className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p className="text-lg font-medium mb-1">
+                    <div className="text-text-secondary">
+                      <FaMapMarkerAlt className="w-12 h-12 mx-auto mb-4 text-border-light" />
+                      <p className="text-lg font-medium text-forest-deep mb-1">
                         {regions.length === 0 ? 'Aucune région trouvée' : 'Aucun résultat'}
                       </p>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-border-light">
                         {regions.length === 0 
                           ? 'Commencez par ajouter votre première région'
                           : 'Essayez de modifier vos critères de recherche'}
@@ -219,29 +219,29 @@ export default function RegionsAdmin() {
                 </tr>
               ) : (
                 paginatedRegions.map((region) => (
-                  <tr key={region.id} className="hover:bg-gray-50 transition-colors group">
+                  <tr key={region.id} className="hover:bg-ultra-light transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
-                          <FaMapMarkerAlt className="w-4 h-4 text-blue-600" />
+                        <div className="w-8 h-8 bg-olive-nature/20 rounded-lg flex items-center justify-center mr-3 group-hover:bg-olive-nature/30 transition-colors border border-olive-nature/30">
+                          <FaMapMarkerAlt className="w-4 h-4 text-olive-nature" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{region.nom}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="font-medium text-premium-dark">{region.nom}</div>
+                          <div className="text-xs text-text-secondary mt-0.5">
                             ID: {region.id}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-600 max-w-md">
+                      <div className="text-sm text-text-secondary max-w-md">
                         {region.description ? (
                           <div className="flex items-start">
-                            <FaFileAlt className="w-3.5 h-3.5 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                            <FaFileAlt className="w-3.5 h-3.5 text-border-light mr-2 mt-0.5 flex-shrink-0" />
                             <span className="line-clamp-2">{region.description}</span>
                           </div>
                         ) : (
-                          <span className="text-gray-400 italic flex items-center">
+                          <span className="text-border-light italic flex items-center">
                             <FaFileAlt className="w-3.5 h-3.5 mr-2" />
                             Aucune description
                           </span>
@@ -249,8 +249,8 @@ export default function RegionsAdmin() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <FaCalendarAlt className="w-3.5 h-3.5 text-gray-400 mr-2" />
+                      <div className="flex items-center text-sm text-text-secondary">
+                        <FaCalendarAlt className="w-3.5 h-3.5 text-border-light mr-2" />
                         {formatDate(region.createdAt)}
                       </div>
                     </td>
@@ -258,7 +258,7 @@ export default function RegionsAdmin() {
                       <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => handleEdit(region)}
-                          className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-water-blue hover:text-forest-deep hover:bg-sky-soft/10 rounded-lg transition-colors"
                           title="Modifier"
                         >
                           <FaEdit className="w-4 h-4" />
@@ -268,13 +268,13 @@ export default function RegionsAdmin() {
                           <div className="flex items-center space-x-1">
                             <button
                               onClick={() => handleDelete(region.id)}
-                              className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium text-warm-white bg-gradient-to-r from-sun-gold to-sun-gold/80 rounded-lg hover:from-sun-gold/80 hover:to-sun-gold transition-colors"
                             >
                               Confirmer
                             </button>
                             <button
                               onClick={() => setDeleteConfirm(null)}
-                              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-ultra-light border border-border-light rounded-lg hover:bg-border-light transition-colors"
                             >
                               Annuler
                             </button>
@@ -282,7 +282,7 @@ export default function RegionsAdmin() {
                         ) : (
                           <button
                             onClick={() => setDeleteConfirm(region.id)}
-                            className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-sun-gold hover:text-earth-brown hover:bg-sun-gold/10 rounded-lg transition-colors"
                             title="Supprimer"
                           >
                             <FaTrash className="w-4 h-4" />
@@ -299,15 +299,15 @@ export default function RegionsAdmin() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
-            <div className="text-sm text-gray-600">
+          <div className="px-6 py-4 bg-ultra-light border-t border-border-light flex items-center justify-between">
+            <div className="text-sm text-text-secondary">
               Page {currentPage} sur {totalPages} • {filteredRegions.length} région(s)
             </div>
             <div className="flex space-x-2">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                className="px-3 py-1.5 border border-border-light rounded-lg text-sm font-medium text-text-secondary bg-warm-white hover:bg-ultra-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
                 <FaChevronLeft className="w-3 h-3 mr-1" />
                 Précédent
@@ -315,7 +315,7 @@ export default function RegionsAdmin() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                className="px-3 py-1.5 border border-border-light rounded-lg text-sm font-medium text-text-secondary bg-warm-white hover:bg-ultra-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
                 Suivant
                 <FaChevronRight className="w-3 h-3 ml-1" />
@@ -327,42 +327,42 @@ export default function RegionsAdmin() {
 
       {/* Statistiques */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition-shadow">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Total régions</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{regions.length}</p>
+              <p className="text-sm text-text-secondary">Total régions</p>
+              <p className="text-2xl font-bold text-premium-dark mt-1">{regions.length}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <FaMapMarkerAlt className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-olive-nature/20 rounded-xl flex items-center justify-center border border-olive-nature/30">
+              <FaMapMarkerAlt className="w-6 h-6 text-olive-nature" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition-shadow">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Avec description</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-sm text-text-secondary">Avec description</p>
+              <p className="text-2xl font-bold text-water-blue mt-1">
                 {regions.filter(r => r.description).length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-              <FaFileAlt className="w-6 h-6 text-green-600" />
+            <div className="w-12 h-12 bg-sky-soft/20 rounded-xl flex items-center justify-center border border-sky-soft/30">
+              <FaFileAlt className="w-6 h-6 text-water-blue" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition-shadow">
+        <div className="bg-warm-white p-6 rounded-xl shadow-lg hover-lift border border-border-light">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Sans description</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-sm text-text-secondary">Sans description</p>
+              <p className="text-2xl font-bold text-sun-gold mt-1">
                 {regions.filter(r => !r.description).length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-              <FaExclamationCircle className="w-6 h-6 text-orange-600" />
+            <div className="w-12 h-12 bg-sun-gold/20 rounded-xl flex items-center justify-center border border-sun-gold/30">
+              <FaExclamationCircle className="w-6 h-6 text-sun-gold" />
             </div>
           </div>
         </div>

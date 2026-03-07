@@ -1,10 +1,287 @@
 // src/components/sections/DonSection.tsx
 import React, { useState } from 'react';
-import { FaHeart, FaMobile, FaUniversity, FaMoneyBill, FaCheckCircle, FaMoneyBillWave } from 'react-icons/fa';
-import { MdEmail, MdPhone, MdPerson, MdMessage } from 'react-icons/md';
+import { 
+  FaHeart, 
+  FaMobile, 
+  FaUniversity, 
+  FaMoneyBill, 
+  FaCheckCircle, 
+  FaMoneyBillWave,
+  FaArrowLeft,
+  FaHome,
+  FaPhone,
+  FaEnvelope,
+  FaUser,
+  FaComment,
+  FaWhatsapp,
+  FaBuilding,
+  FaCheck,
+  FaTimes
+} from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import { donService } from '../../services/donService';
+import { useLanguage } from '../../contexts/LanguageContext';
+
+// Interface pour le contenu multilingue
+interface Content {
+  fr: {
+    badge: string;
+    title: string;
+    subtitle: string;
+    form: {
+      name: string;
+      namePlaceholder: string;
+      nameHint: string;
+      email: string;
+      emailValid: string;
+      emailInvalid: string;
+      phone: string;
+      phoneFormat: string;
+      amount: string;
+      otherAmount: string;
+      paymentMethod: string;
+      message: string;
+      messagePlaceholder: string;
+      submit: string;
+      submitting: string;
+      required: string;
+      privacy: string;
+    };
+    success: {
+      title: string;
+      message: string;
+      steps: {
+        title: string;
+        items: {
+          call: string;
+          advice: string;
+          receipt: string;
+        };
+      };
+      buttons: {
+        home: string;
+        new: string;
+      };
+      confirmation: string;
+      social: string;
+    };
+    paymentMethods: {
+      orange: string;
+      transfer: string;
+      check: string;
+      cash: string;
+    };
+    cards: {
+      transparent: {
+        title: string;
+        description: string;
+      };
+      support: {
+        title: string;
+        description: string;
+      };
+      impact: {
+        title: string;
+        description: string;
+      };
+    };
+  };
+  en: {
+    badge: string;
+    title: string;
+    subtitle: string;
+    form: {
+      name: string;
+      namePlaceholder: string;
+      nameHint: string;
+      email: string;
+      emailValid: string;
+      emailInvalid: string;
+      phone: string;
+      phoneFormat: string;
+      amount: string;
+      otherAmount: string;
+      paymentMethod: string;
+      message: string;
+      messagePlaceholder: string;
+      submit: string;
+      submitting: string;
+      required: string;
+      privacy: string;
+    };
+    success: {
+      title: string;
+      message: string;
+      steps: {
+        title: string;
+        items: {
+          call: string;
+          advice: string;
+          receipt: string;
+        };
+      };
+      buttons: {
+        home: string;
+        new: string;
+      };
+      confirmation: string;
+      social: string;
+    };
+    paymentMethods: {
+      orange: string;
+      transfer: string;
+      check: string;
+      cash: string;
+    };
+    cards: {
+      transparent: {
+        title: string;
+        description: string;
+      };
+      support: {
+        title: string;
+        description: string;
+      };
+      impact: {
+        title: string;
+        description: string;
+      };
+    };
+  };
+}
+
+// Contenu multilingue
+const content: Content = {
+  fr: {
+    badge: 'Soutenez nos actions',
+    title: 'Faire un don à VINA',
+    subtitle: 'Votre générosité nous permet de continuer nos actions de développement durable auprès des communautés rurales. Chaque don, quel que soit son montant, fait la différence.',
+    form: {
+      name: 'Nom complet / Raison sociale',
+      namePlaceholder: 'Votre nom ou celui de votre entreprise/organisation',
+      nameHint: 'Indiquez votre nom, le nom de votre entreprise ou organisation',
+      email: 'Email',
+      emailValid: 'Email valide',
+      emailInvalid: 'Email invalide',
+      phone: 'Téléphone',
+      phoneFormat: 'Format international accepté : +261341234567, 0341234567',
+      amount: 'Montant du don (Ariary)',
+      otherAmount: 'Autre montant',
+      paymentMethod: 'Mode de paiement souhaité',
+      message: 'Message (optionnel)',
+      messagePlaceholder: 'Un message à nous transmettre ?',
+      submit: 'Envoyer ma demande de don',
+      submitting: 'Traitement en cours...',
+      required: 'Champs obligatoires',
+      privacy: 'En soumettant ce formulaire, vous acceptez d\'être contacté par notre équipe. Vos informations sont confidentielles et ne seront pas partagées avec des tiers.'
+    },
+    success: {
+      title: 'Misaotra indrindra ! 🙏',
+      message: 'Votre demande a bien été enregistrée. Un membre de notre équipe vous contactera dans les plus brefs délais pour finaliser votre don.',
+      steps: {
+        title: 'Prochaines étapes',
+        items: {
+          call: 'Un appel pour confirmer votre don',
+          advice: 'Le mode de paiement le plus adapté',
+          receipt: 'Pour votre déclaration'
+        }
+      },
+      buttons: {
+        home: 'Accueil',
+        new: 'Nouvelle demande'
+      },
+      confirmation: 'Un email de confirmation vous a été envoyé.',
+      social: 'Suivez-nous sur les réseaux sociaux pour ne rien manquer de nos actions !'
+    },
+    paymentMethods: {
+      orange: 'Mobile Money',
+      transfer: 'Virement bancaire',
+      check: 'Chèque',
+      cash: 'Espèces'
+    },
+    cards: {
+      transparent: {
+        title: '100% transparent',
+        description: 'Nous vous fournissons un reçu officiel et un suivi de l\'utilisation de votre don.'
+      },
+      support: {
+        title: 'Accompagnement personnalisé',
+        description: 'Notre équipe vous guide pour choisir le mode de paiement le plus adapté.'
+      },
+      impact: {
+        title: 'Impact durable',
+        description: 'Votre don contribue directement à nos projets de développement dans les communautés rurales.'
+      }
+    }
+  },
+  en: {
+    badge: 'Support our actions',
+    title: 'Make a donation to VINA',
+    subtitle: 'Your generosity allows us to continue our sustainable development actions with rural communities. Every donation, regardless of amount, makes a difference.',
+    form: {
+      name: 'Full name / Company name',
+      namePlaceholder: 'Your name or your company/organization name',
+      nameHint: 'Enter your name, your company or organization name',
+      email: 'Email',
+      emailValid: 'Valid email',
+      emailInvalid: 'Invalid email',
+      phone: 'Phone',
+      phoneFormat: 'International format accepted: +261341234567, 0341234567',
+      amount: 'Donation amount (Ariary)',
+      otherAmount: 'Other amount',
+      paymentMethod: 'Preferred payment method',
+      message: 'Message (optional)',
+      messagePlaceholder: 'A message for us?',
+      submit: 'Send my donation request',
+      submitting: 'Processing...',
+      required: 'Required fields',
+      privacy: 'By submitting this form, you agree to be contacted by our team. Your information is confidential and will not be shared with third parties.'
+    },
+    success: {
+      title: 'Thank you very much! 🙏',
+      message: 'Your request has been registered. A member of our team will contact you as soon as possible to finalize your donation.',
+      steps: {
+        title: 'Next steps',
+        items: {
+          call: 'A call to confirm your donation',
+          advice: 'The most suitable payment method',
+          receipt: 'For your tax declaration'
+        }
+      },
+      buttons: {
+        home: 'Home',
+        new: 'New request'
+      },
+      confirmation: 'A confirmation email has been sent to you.',
+      social: 'Follow us on social media to not miss any of our actions!'
+    },
+    paymentMethods: {
+      orange: 'Mobile Money',
+      transfer: 'Bank transfer',
+      check: 'Check',
+      cash: 'Cash'
+    },
+    cards: {
+      transparent: {
+        title: '100% transparent',
+        description: 'We provide you with an official receipt and follow-up on the use of your donation.'
+      },
+      support: {
+        title: 'Personalized support',
+        description: 'Our team guides you to choose the most suitable payment method.'
+      },
+      impact: {
+        title: 'Sustainable impact',
+        description: 'Your donation directly contributes to our development projects in rural communities.'
+      }
+    }
+  }
+};
 
 const DonSection: React.FC = () => {
+  const { language } = useLanguage();
+  const t = content[language];
+  
   const [formData, setFormData] = useState({
     nomComplet: '',
     email: '',
@@ -13,6 +290,12 @@ const DonSection: React.FC = () => {
     montant: '',
     montantType: 'FIXE',
     modePaiementSouhaite: '',
+    message: ''
+  });
+
+  const [emailValidation, setEmailValidation] = useState({
+    isValid: false,
+    isDirty: false,
     message: ''
   });
 
@@ -25,11 +308,37 @@ const DonSection: React.FC = () => {
   const montantsSuggeres = [10000, 25000, 50000, 100000, 250000];
 
   const modesPaiement = [
-    { value: 'ORANGE_MONEY', label: 'Mobile Money', icon: FaMobile, color: 'bg-orange-500' },
-    { value: 'VIREMENT', label: 'Virement bancaire', icon: FaUniversity, color: 'bg-green-600' },
-    { value: 'CHEQUE', label: 'Chèque', icon: FaMoneyBill, color: 'bg-purple-500' },
-    { value: 'ESPECES', label: 'Espèces', icon: FaMoneyBillWave, color: 'bg-yellow-500' }
+    { value: 'ORANGE_MONEY', label: t.paymentMethods.orange, icon: FaMobile, color: 'bg-orange-500' },
+    { value: 'VIREMENT', label: t.paymentMethods.transfer, icon: FaUniversity, color: 'bg-water-blue' },
+    { value: 'CHEQUE', label: t.paymentMethods.check, icon: FaMoneyBill, color: 'bg-earth-brown' },
+    { value: 'ESPECES', label: t.paymentMethods.cash, icon: FaMoneyBillWave, color: 'bg-sun-gold' }
   ];
+
+  // Fonction de validation d'email
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const email = e.target.value;
+    setFormData(prev => ({ ...prev, email }));
+    
+    if (email) {
+      const isValid = validateEmail(email);
+      setEmailValidation({
+        isValid,
+        isDirty: true,
+        message: isValid ? t.form.emailValid : t.form.emailInvalid
+      });
+    } else {
+      setEmailValidation({
+        isValid: false,
+        isDirty: false,
+        message: ''
+      });
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -54,15 +363,12 @@ const DonSection: React.FC = () => {
     }));
   };
 
-  // Formatage téléphone international
   const formatTelephone = (value: string): string => {
-    // Garder uniquement les chiffres et le +
     const cleaned = value.replace(/[^\d+]/g, '');
     
-    // Si c'est un numéro malgache, on formatte joliment
     if (cleaned.startsWith('261') || cleaned.startsWith('+261')) {
       const numbers = cleaned.replace(/\D/g, '');
-      if (numbers.length === 12) { // +261 34 12 345 67
+      if (numbers.length === 12) {
         const indicatif = numbers.slice(0, 3);
         const operateur = numbers.slice(3, 5);
         const partie1 = numbers.slice(5, 8);
@@ -72,7 +378,6 @@ const DonSection: React.FC = () => {
       }
     }
     
-    // Pour les autres formats, retourner la valeur nettoyée
     return cleaned;
   };
 
@@ -99,6 +404,17 @@ const DonSection: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Vérification finale de l'email
+    if (!validateEmail(formData.email)) {
+      setEmailValidation({
+        isValid: false,
+        isDirty: true,
+        message: t.form.emailInvalid
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -135,6 +451,11 @@ const DonSection: React.FC = () => {
         message: ''
       });
       setMontantPersonnalise(false);
+      setEmailValidation({
+        isValid: false,
+        isDirty: false,
+        message: ''
+      });
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -145,34 +466,89 @@ const DonSection: React.FC = () => {
     }
   };
 
+  const handleReset = () => {
+    setIsSuccess(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white py-16 px-4">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="bg-white rounded-3xl shadow-2xl p-12">
-            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FaCheckCircle className="w-12 h-12 text-green-500" />
+      <div className="min-h-screen bg-gradient-to-b from-ultra-light to-warm-white py-20 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-border-light">
+            {/* En-tête avec gradient */}
+            <div className="h-2 bg-gradient-to-r from-sun-gold via-olive-nature to-water-blue"></div>
+            
+            <div className="p-8 md:p-12 text-center">
+              {/* Icône de succès animée */}
+              <div className="relative mb-8">
+                <div className="w-28 h-28 bg-soft-sun/20 rounded-full mx-auto animate-pulse"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-24 h-24 bg-gradient-to-br from-sun-gold to-soft-sun rounded-full flex items-center justify-center shadow-xl animate-bounce-slow">
+                    <FaCheckCircle className="w-12 h-12 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <h2 className="text-3xl md:text-4xl font-bold text-forest-deep mb-4">
+                {t.success.title}
+              </h2>
+              
+              <p className="text-text-secondary text-lg mb-8">
+                {t.success.message}
+              </p>
+
+              {/* Carte d'information */}
+              <div className="bg-ultra-light border border-border-light rounded-xl p-6 mb-8 text-left">
+                <h3 className="font-bold text-forest-deep mb-4 flex items-center gap-2">
+                  <FaHeart className="text-sun-gold" />
+                  {t.success.steps.title}
+                </h3>
+                <ul className="space-y-3 text-text-secondary">
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-sun-gold/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="w-2 h-2 bg-sun-gold rounded-full"></span>
+                    </span>
+                    <span><strong className="text-forest-deep">{t.success.steps.items.call.split(' ')[0]}</strong> {t.success.steps.items.call.substring(t.success.steps.items.call.indexOf(' ') + 1)}</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-water-blue/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="w-2 h-2 bg-water-blue rounded-full"></span>
+                    </span>
+                    <span>{t.success.steps.items.advice}</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-olive-nature/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="w-2 h-2 bg-olive-nature rounded-full"></span>
+                    </span>
+                    <span>{t.success.steps.items.receipt}</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Boutons d'action */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  to="/"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white font-semibold rounded-lg hover:from-forest-deep hover:to-premium-dark transition-all transform hover:scale-105 shadow-lg"
+                >
+                  <FaHome />
+                  {t.success.buttons.home}
+                </Link>
+                <button
+                  onClick={handleReset}
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white text-forest-deep font-semibold rounded-lg hover:bg-ultra-light transition-all border-2 border-border-light"
+                >
+                  <FaArrowLeft />
+                  {t.success.buttons.new}
+                </button>
+              </div>
             </div>
-            <h2 className="text-3xl font-bold text-vert-fonce mb-4">
-              Misaotra indrindra ! 🙏
-            </h2>
-            <p className="text-gray-600 text-lg mb-8">
-              Votre demande a bien été enregistrée. Un membre de notre équipe vous contactera dans les plus brefs délais pour finaliser votre don.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 text-left">
-              <p className="text-blue-800 font-medium mb-2">📞 À quoi vous attendre ?</p>
-              <ul className="text-blue-700 text-sm space-y-2">
-                <li>• Un appel sous 24-48h pour confirmer votre don</li>
-                <li>• Des conseils sur le mode de paiement le plus adapté</li>
-                <li>• Un reçu officiel pour votre don</li>
-              </ul>
-            </div>
-            <button
-              onClick={() => setIsSuccess(false)}
-              className="bg-vert-jeune text-white px-8 py-3 rounded-lg hover:bg-vert-mousse transition-colors"
-            >
-              Faire une autre demande
-            </button>
+          </div>
+
+          <div className="mt-8 text-center text-text-secondary text-sm">
+            <p>{t.success.confirmation}</p>
+            <p className="mt-2">{t.success.social}</p>
           </div>
         </div>
       </div>
@@ -180,93 +556,135 @@ const DonSection: React.FC = () => {
   }
 
   return (
-    <section className="bg-gradient-to-b from-green-50 to-white py-16 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center bg-vert-jeune/10 px-4 py-2 rounded-full mb-4">
-            <FaHeart className="text-vert-jeune mr-2" />
-            <span className="text-vert-fonce font-medium">Soutenez nos actions</span>
+    <section className="bg-gradient-to-b from-olive-nature to-forest-deep py-12 px-4 relative">
+      {/* Overlay pour assombrir légèrement l'arrière-plan */}
+      <div className="absolute inset-0 bg-premium-dark/30"></div>
+      
+      <div className="max-w-4xl mx-auto pt-8 md:pt-12 relative z-10">
+        {/* Badge flottant */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center bg-warm-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-warm-white/30 shadow-lg">
+            <FaHeart className="text-sun-gold mr-2 animate-pulse" />
+            <span className="text-warm-white font-medium">{t.badge}</span>
           </div>
-          <h1 className="text-4xl font-bold text-vert-fonce mb-4">
-            Faire un don à VINA
+        </div>
+
+        {/* Titre */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-bold text-warm-white mb-4 drop-shadow-lg">
+            {t.title}
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Votre générosité nous permet de continuer nos actions de développement durable 
-            auprès des communautés rurales. Chaque don, quel que soit son montant, fait la différence.
+          <p className="text-warm-white/90 text-lg max-w-2xl mx-auto drop-shadow">
+            {t.subtitle}
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-border-light">
+          {/* Barre de progression décorative */}
+          <div className="h-2 bg-gradient-to-r from-sun-gold via-olive-nature to-water-blue"></div>
+          
           <div className="p-8 md:p-12">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+                <FaHeart className="text-red-500" />
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom complet <span className="text-red-500">*</span>
+                {/* Champ Nom complet / Entreprise */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-forest-deep mb-2">
+                    {t.form.name} <span className="text-sun-gold">*</span>
                   </label>
-                  <div className="relative">
-                    <MdPerson className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                      <FaUser className="text-text-secondary group-focus-within:text-sun-gold transition-colors" />
+                      <span className="text-text-secondary/30">|</span>
+                      <FaBuilding className="text-text-secondary group-focus-within:text-sun-gold transition-colors" />
+                    </div>
                     <input
                       type="text"
                       name="nomComplet"
                       value={formData.nomComplet}
                       onChange={handleInputChange}
                       required
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vert-jeune focus:border-transparent"
-                      placeholder="Jean Dupont"
+                      className="w-full pl-16 pr-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold focus:border-transparent transition-all bg-ultra-light/30 hover:bg-ultra-light/50"
+                      placeholder={t.form.namePlaceholder}
                     />
                   </div>
+                  <p className="text-xs text-text-secondary mt-1 flex items-center gap-1">
+                    <FaCheck className="text-sun-gold w-3 h-3" />
+                    {t.form.nameHint}
+                  </p>
                 </div>
 
+                {/* Email avec validation */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-forest-deep mb-2">
+                    {t.form.email} <span className="text-sun-gold">*</span>
                   </label>
-                  <div className="relative">
-                    <MdEmail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <div className="relative group">
+                    <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary group-focus-within:text-sun-gold transition-colors" />
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
-                      onChange={handleInputChange}
+                      onChange={handleEmailChange}
                       required
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vert-jeune focus:border-transparent"
-                      placeholder="jean.dupont@email.com"
+                      className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold focus:border-transparent transition-all bg-ultra-light/30 hover:bg-ultra-light/50 ${
+                        emailValidation.isDirty
+                          ? emailValidation.isValid
+                            ? 'border-green-500'
+                            : 'border-red-500'
+                          : 'border-border-light'
+                      }`}
+                      placeholder="contact@exemple.com"
                     />
+                    {emailValidation.isDirty && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        {emailValidation.isValid ? (
+                          <FaCheck className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <FaTimes className="w-5 h-5 text-red-500" />
+                        )}
+                      </div>
+                    )}
                   </div>
+                  {emailValidation.isDirty && (
+                    <p className={`text-xs mt-1 ${emailValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {emailValidation.message}
+                    </p>
+                  )}
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Téléphone <span className="text-red-500">*</span>
+                <div>
+                  <label className="block text-sm font-medium text-forest-deep mb-2">
+                    {t.form.phone} <span className="text-sun-gold">*</span>
                   </label>
-                  <div className="relative">
-                    <MdPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <div className="relative group">
+                    <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary group-focus-within:text-sun-gold transition-colors" />
                     <input
                       type="tel"
                       name="telephone"
                       value={formData.telephone}
                       onChange={handleTelephoneChange}
                       required
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vert-jeune focus:border-transparent"
-                      placeholder="+261 34 12 345 67 ou autre format"
+                      className="w-full pl-10 pr-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold focus:border-transparent transition-all bg-ultra-light/30 hover:bg-ultra-light/50"
+                      placeholder="+261 34 12 345 67"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Format international accepté : +261341234567, 0341234567, +33123456789
+                  <p className="text-xs text-text-secondary mt-2 flex items-center gap-2">
+                    <FaWhatsapp className="text-water-blue" />
+                    {t.form.phoneFormat}
                   </p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4">
-                  Montant du don (Ariary)
+                <label className="block text-sm font-medium text-forest-deep mb-4">
+                  {t.form.amount}
                 </label>
                 
                 <div className="flex flex-wrap gap-3 mb-4">
@@ -277,8 +695,8 @@ const DonSection: React.FC = () => {
                       onClick={() => handleMontantSelect(montant)}
                       className={`px-6 py-3 rounded-lg font-medium transition-all ${
                         formData.montant === montant.toString() && !montantPersonnalise
-                          ? 'bg-vert-jeune text-white shadow-lg scale-105'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-gradient-to-r from-sun-gold to-soft-sun text-forest-deep shadow-lg scale-105'
+                          : 'bg-ultra-light text-text-secondary hover:bg-light-moss/20 border border-border-light'
                       }`}
                     >
                       {formatAriary(montant)}
@@ -290,11 +708,11 @@ const DonSection: React.FC = () => {
                     onClick={handleMontantPersonnalise}
                     className={`px-6 py-3 rounded-lg font-medium transition-all ${
                       montantPersonnalise
-                        ? 'bg-vert-jeune text-white shadow-lg scale-105'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gradient-to-r from-sun-gold to-soft-sun text-forest-deep shadow-lg scale-105'
+                        : 'bg-ultra-light text-text-secondary hover:bg-light-moss/20 border border-border-light'
                     }`}
                   >
-                    Autre montant
+                    {t.form.otherAmount}
                   </button>
                 </div>
 
@@ -305,11 +723,11 @@ const DonSection: React.FC = () => {
                       name="montant"
                       value={formData.montant}
                       onChange={handleInputChange}
-                      placeholder="Saisissez votre montant"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vert-jeune focus:border-transparent"
+                      placeholder={t.form.otherAmount}
+                      className="w-full px-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold focus:border-transparent transition-all bg-ultra-light/30"
                       min="100"
                     />
-                    <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-forest-deep font-medium">
                       Ar
                     </span>
                   </div>
@@ -317,8 +735,8 @@ const DonSection: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4">
-                  Mode de paiement souhaité
+                <label className="block text-sm font-medium text-forest-deep mb-4">
+                  {t.form.paymentMethod}
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {modesPaiement.map((mode) => {
@@ -328,14 +746,14 @@ const DonSection: React.FC = () => {
                         key={mode.value}
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, modePaiementSouhaite: mode.value }))}
-                        className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all ${
+                        className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all hover:scale-105 ${
                           formData.modePaiementSouhaite === mode.value
-                            ? 'border-vert-jeune bg-vert-jeune/5'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-sun-gold bg-sun-gold/5'
+                            : 'border-border-light hover:border-light-moss bg-ultra-light/30'
                         }`}
                       >
-                        <Icon className={`w-6 h-6 mb-2 ${mode.color} text-white p-1 rounded-full`} />
-                        <span className="text-sm font-medium text-gray-700">{mode.label}</span>
+                        <Icon className={`w-8 h-8 mb-2 ${mode.color} text-white p-1.5 rounded-full`} />
+                        <span className="text-sm font-medium text-forest-deep">{mode.label}</span>
                       </button>
                     );
                   })}
@@ -343,18 +761,18 @@ const DonSection: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Message (optionnel)
+                <label className="block text-sm font-medium text-forest-deep mb-2">
+                  {t.form.message}
                 </label>
-                <div className="relative">
-                  <MdMessage className="absolute left-3 top-3 text-gray-400" />
+                <div className="relative group">
+                  <FaComment className="absolute left-3 top-3 text-text-secondary group-focus-within:text-sun-gold transition-colors" />
                   <textarea
                     name="message"
                     value={formData.message}
                     onChange={handleInputChange}
                     rows={4}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vert-jeune focus:border-transparent"
-                    placeholder="Un message à nous transmettre ?"
+                    className="w-full pl-10 pr-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold focus:border-transparent transition-all bg-ultra-light/30 hover:bg-ultra-light/50"
+                    placeholder={t.form.messagePlaceholder}
                   />
                 </div>
               </div>
@@ -362,58 +780,52 @@ const DonSection: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-vert-jeune to-vert-fonce text-white py-4 rounded-lg font-bold text-lg hover:from-vert-mousse hover:to-vert-fonce transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white py-4 rounded-lg font-bold text-lg hover:from-forest-deep hover:to-premium-dark transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="spinner border-white"></div>
-                    Traitement en cours...
+                    <div className="spinner border-warm-white"></div>
+                    {t.form.submitting}
                   </>
                 ) : (
                   <>
-                    <FaHeart className="animate-pulse" />
-                    Envoyer ma demande de don
+                    <FaHeart className="animate-pulse text-sun-gold" />
+                    {t.form.submit}
                   </>
                 )}
               </button>
             </form>
 
-            <p className="text-xs text-gray-500 text-center mt-6">
-              En soumettant ce formulaire, vous acceptez d'être contacté par notre équipe. 
-              Vos informations sont confidentielles et ne seront pas partagées avec des tiers.
+            <p className="text-xs text-text-secondary text-center mt-6">
+              {t.form.privacy}
             </p>
           </div>
         </div>
 
+        {/* Cartes d'information */}
         <div className="mt-12 grid md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <FaCheckCircle className="w-6 h-6 text-green-600" />
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-sun-gold/10 rounded-full flex items-center justify-center mb-4">
+              <FaCheckCircle className="w-6 h-6 text-sun-gold" />
             </div>
-            <h3 className="font-bold text-vert-fonce mb-2">100% transparent</h3>
-            <p className="text-sm text-gray-600">
-              Nous vous fournissons un reçu officiel et un suivi de l'utilisation de votre don.
-            </p>
+            <h3 className="font-bold text-forest-deep mb-2">{t.cards.transparent.title}</h3>
+            <p className="text-sm text-text-secondary">{t.cards.transparent.description}</p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-              <MdPhone className="w-6 h-6 text-blue-600" />
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-water-blue/10 rounded-full flex items-center justify-center mb-4">
+              <FaPhone className="w-6 h-6 text-water-blue" />
             </div>
-            <h3 className="font-bold text-vert-fonce mb-2">Accompagnement personnalisé</h3>
-            <p className="text-sm text-gray-600">
-              Notre équipe vous guide pour choisir le mode de paiement le plus adapté.
-            </p>
+            <h3 className="font-bold text-forest-deep mb-2">{t.cards.support.title}</h3>
+            <p className="text-sm text-text-secondary">{t.cards.support.description}</p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-              <FaHeart className="w-6 h-6 text-purple-600" />
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-olive-nature/10 rounded-full flex items-center justify-center mb-4">
+              <FaHeart className="w-6 h-6 text-olive-nature" />
             </div>
-            <h3 className="font-bold text-vert-fonce mb-2">Impact durable</h3>
-            <p className="text-sm text-gray-600">
-              Votre don contribue directement à nos projets de développement dans les communautés rurales.
-            </p>
+            <h3 className="font-bold text-forest-deep mb-2">{t.cards.impact.title}</h3>
+            <p className="text-sm text-text-secondary">{t.cards.impact.description}</p>
           </div>
         </div>
       </div>

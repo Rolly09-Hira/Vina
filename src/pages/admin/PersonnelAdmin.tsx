@@ -41,7 +41,6 @@ export default function PersonnelAdmin() {
       
       data.forEach(p => {
         if (p.departement) {
-          // Maintenant p.departement est défini ici
           const dept = p.departement;
           parDepartement[dept] = (parDepartement[dept] || 0) + 1;
         }
@@ -109,10 +108,10 @@ export default function PersonnelAdmin() {
 
   const getPhotoUrl = (p: Personnel) => {
     if (!p.photoUrl) return null;
-    return p.photoUrl.startsWith('http') ? p.photoUrl : `http://localhost:5005/${p.photoUrl}`;
+    return p.photoUrl.startsWith('http') ? p.photoUrl : `https://web-production-03b53.up.railway.app/${p.photoUrl}`;
   };
 
-  // Filtrer les départements pour n'avoir que ceux qui existent (non undefined)
+  // Filtrer les départements pour n'avoir que ceux qui existent
   const departements = [...new Set(
     personnel
       .map(p => p.departement)
@@ -120,14 +119,14 @@ export default function PersonnelAdmin() {
   )];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-ultra-light">
       {/* En-tête */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+      <div className="bg-warm-white shadow-md border-b border-border-light sticky top-0 z-10">
         <div className="px-6 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Gestion du Personnel</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <h1 className="text-2xl font-bold text-premium-dark">Gestion du Personnel</h1>
+              <p className="text-sm text-text-secondary mt-1">
                 {stats.total} membre{stats.total > 1 ? 's' : ''} au total
               </p>
             </div>
@@ -135,7 +134,7 @@ export default function PersonnelAdmin() {
             <div className="mt-4 md:mt-0 flex items-center space-x-3">
               <button
                 onClick={handleAdd}
-                className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-500 text-white rounded-lg hover:from-green-700 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors flex items-center"
+                className="px-4 py-2 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white rounded-lg hover:from-forest-deep hover:to-premium-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive-nature transition-all shadow-md hover-lift flex items-center"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -150,13 +149,13 @@ export default function PersonnelAdmin() {
       {/* Contenu principal */}
       <div className="p-6">
         {/* Filtres */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="bg-warm-white rounded-lg shadow-lg border border-border-light p-4 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Recherche */}
             <div className="flex-1">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-5 w-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -165,7 +164,7 @@ export default function PersonnelAdmin() {
                   placeholder="Rechercher par nom, prénom, email, poste..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-border-light rounded-lg bg-warm-white text-text-dark focus:outline-none focus:ring-2 focus:ring-olive-nature focus:border-olive-nature text-sm"
                 />
               </div>
             </div>
@@ -175,7 +174,7 @@ export default function PersonnelAdmin() {
               <select
                 value={departementFilter}
                 onChange={(e) => setDepartementFilter(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                className="block w-full px-3 py-2 border border-border-light rounded-lg bg-warm-white text-text-dark focus:outline-none focus:ring-2 focus:ring-olive-nature focus:border-olive-nature text-sm"
               >
                 <option value="all">Tous les départements</option>
                 {departements.map(dept => (
@@ -191,17 +190,17 @@ export default function PersonnelAdmin() {
         {/* Liste du personnel */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="spinner"></div>
+            <div className="w-12 h-12 border-4 border-olive-nature border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : filteredPersonnel.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-            <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-warm-white rounded-lg shadow-lg border border-border-light p-12 text-center">
+            <div className="w-24 h-24 mx-auto mb-4 bg-ultra-light rounded-full flex items-center justify-center border border-border-light">
+              <svg className="w-12 h-12 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun membre trouvé</h3>
-            <p className="text-gray-500 mb-6">
+            <h3 className="text-lg font-medium text-premium-dark mb-2">Aucun membre trouvé</h3>
+            <p className="text-text-secondary mb-6">
               {searchTerm || departementFilter !== 'all' 
                 ? 'Aucun membre ne correspond à vos critères de recherche.'
                 : 'Commencez par ajouter un membre du personnel.'}
@@ -209,7 +208,7 @@ export default function PersonnelAdmin() {
             {!searchTerm && departementFilter === 'all' && (
               <button
                 onClick={handleAdd}
-                className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-500 text-white rounded-lg hover:from-green-700 hover:to-teal-600 inline-flex items-center"
+                className="px-4 py-2 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white rounded-lg hover:from-forest-deep hover:to-premium-dark inline-flex items-center shadow-md hover-lift transition-all"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -223,7 +222,7 @@ export default function PersonnelAdmin() {
             {filteredPersonnel.map((person) => (
               <div
                 key={person.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                className="bg-warm-white rounded-lg shadow-lg border border-border-light overflow-hidden hover:shadow-xl transition-all hover-lift"
               >
                 <div className="p-6">
                   <div className="flex items-start space-x-4">
@@ -233,11 +232,11 @@ export default function PersonnelAdmin() {
                         <img
                           src={getPhotoUrl(person)!}
                           alt={`${person.prenom} ${person.nom}`}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-green-500"
+                          className="w-16 h-16 rounded-full object-cover border-2 border-olive-nature"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-teal-400 flex items-center justify-center">
-                          <span className="text-white font-bold text-xl">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-olive-nature to-forest-deep flex items-center justify-center">
+                          <span className="text-warm-white font-bold text-xl">
                             {person.prenom.charAt(0)}{person.nom.charAt(0)}
                           </span>
                         </div>
@@ -246,16 +245,16 @@ export default function PersonnelAdmin() {
 
                     {/* Infos */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      <h3 className="text-lg font-semibold text-premium-dark truncate">
                         {person.prenom} {person.nom}
                       </h3>
-                      <p className="text-sm text-green-600 font-medium">{person.poste}</p>
+                      <p className="text-sm text-olive-nature font-medium">{person.poste}</p>
                       {person.departement && (
-                        <p className="text-xs text-gray-500 mt-1">{person.departement}</p>
+                        <p className="text-xs text-text-secondary mt-1">{person.departement}</p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1 truncate">{person.email}</p>
+                      <p className="text-xs text-text-secondary mt-1 truncate">{person.email}</p>
                       {person.telephone && (
-                        <p className="text-xs text-gray-500">{person.telephone}</p>
+                        <p className="text-xs text-text-secondary">{person.telephone}</p>
                       )}
                     </div>
                   </div>
@@ -263,15 +262,22 @@ export default function PersonnelAdmin() {
                   {/* Spécialités */}
                   {person.specialites && (
                     <div className="mt-3">
-                      <p className="text-xs text-gray-500 line-clamp-2">{person.specialites}</p>
+                      <p className="text-xs text-text-secondary line-clamp-2">{person.specialites}</p>
                     </div>
                   )}
 
+                  {/* Ordre d'affichage */}
+                  <div className="mt-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-sky-soft/20 text-water-blue border border-sky-soft/30">
+                      Ordre: {person.ordreAffichage || 1}
+                    </span>
+                  </div>
+
                   {/* Actions */}
-                  <div className="mt-4 flex items-center justify-end space-x-2 border-t pt-3">
+                  <div className="mt-4 flex items-center justify-end space-x-2 border-t border-border-light pt-3">
                     <button
                       onClick={() => handleEdit(person)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-water-blue hover:text-forest-deep hover:bg-sky-soft/10 rounded-lg transition-colors"
                       title="Modifier"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,7 +286,7 @@ export default function PersonnelAdmin() {
                     </button>
                     <button
                       onClick={() => handleDelete(person)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-sun-gold hover:text-earth-brown hover:bg-sun-gold/10 rounded-lg transition-colors"
                       title="Supprimer"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

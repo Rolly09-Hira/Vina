@@ -22,7 +22,7 @@
     --text-secondary: #6B7280;
     --text-dark: #333333;
     
-    /* 🌊 COULEURS SECONDAIRES (Optionnelles) */
+    /* 🌊 COULEURS SECONDAIRES */
     --sky-soft: #87CFEA;
     --water-blue: #2C7FB8;
     --earth-brown: #6B4F3A;
@@ -55,20 +55,40 @@
 .text-sky-soft { color: var(--sky-soft); }
 .text-water-blue { color: var(--water-blue); }
 .text-earth-brown { color: var(--earth-brown); }
+.text-warm-white { color: var(--warm-white); }
 
 /* Border colors */
 .border-olive-nature { border-color: var(--olive-nature); }
 .border-sun-gold { border-color: var(--sun-gold); }
 .border-soft-sun { border-color: var(--soft-sun); }
 .border-border-light { border-color: var(--border-light); }
+.border-sky-soft { border-color: var(--sky-soft); }
+.border-water-blue { border-color: var(--water-blue); }
 
-/* Gradients */
-.from-olive-nature { --tw-gradient-from: var(--olive-nature); }
-.from-forest-deep { --tw-gradient-from: var(--forest-deep); }
-.from-sun-gold { --tw-gradient-from: var(--sun-gold); }
-.to-sun-gold { --tw-gradient-to: var(--sun-gold); }
-.to-soft-sun { --tw-gradient-to: var(--soft-sun); }
-.to-olive-nature { --tw-gradient-to: var(--olive-nature); }
+/* Ring colors (focus) */
+.ring-olive-nature { --tw-ring-color: var(--olive-nature); }
+.ring-sun-gold { --tw-ring-color: var(--sun-gold); }
+
+/* === GRADIENTS === */
+.bg-gradient-sun {
+  background: linear-gradient(135deg, var(--sun-gold) 0%, var(--soft-sun) 100%);
+}
+
+.bg-gradient-forest {
+  background: linear-gradient(135deg, var(--forest-deep) 0%, var(--olive-nature) 100%);
+}
+
+.bg-gradient-premium {
+  background: linear-gradient(135deg, var(--premium-dark) 0%, var(--forest-deep) 100%);
+}
+
+.bg-gradient-sky {
+  background: linear-gradient(135deg, var(--sky-soft) 0%, var(--water-blue) 100%);
+}
+
+.bg-gradient-earth {
+  background: linear-gradient(135deg, var(--earth-brown) 0%, var(--light-moss) 100%);
+}
 
 /* === SCROLLBAR PERSONNALISÉE === */
 ::-webkit-scrollbar {
@@ -167,8 +187,12 @@
   animation: fadeInUp 1s ease-out;
 }
 
-.modal-animation {
+.animate-fade-in {
   animation: fadeIn 0.3s ease-out;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
 .animate-pulse {
@@ -189,6 +213,18 @@
   animation: spin 1s linear infinite;
 }
 
+.spinner-lg {
+  width: 48px;
+  height: 48px;
+  border-width: 4px;
+}
+
+.spinner-sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
 /* === UTILITAIRES === */
 .hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -197,6 +233,10 @@
 .hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 15px var(--accent-light);
 }
 
 /* Empêcher le scroll sur le body quand sidebar mobile est ouverte */
@@ -217,7 +257,7 @@ html {
 }
 
 /* Focus styles pour l'accessibilité */
-*:focus {
+*:focus-visible {
   outline: 2px solid var(--sun-gold);
   outline-offset: 2px;
 }
@@ -244,4 +284,58 @@ html {
 main {
   flex: 1;
   overflow: auto;
+}
+
+/* === LINE CLAMP UTILITIES (avec support navigateur) === */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1; /* Propriété standard pour compatibilité future */
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.line-clamp-4 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+.line-clamp-5 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+}
+
+/* Fallback pour navigateurs sans support line-clamp */
+@supports not (( -webkit-line-clamp: 2 ) or ( line-clamp: 2 )) {
+  .line-clamp-1,
+  .line-clamp-2,
+  .line-clamp-3,
+  .line-clamp-4,
+  .line-clamp-5 {
+    display: block;
+    max-height: none;
+    overflow: visible;
+  }
 }

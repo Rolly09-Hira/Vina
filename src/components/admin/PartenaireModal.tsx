@@ -1,6 +1,23 @@
 // src/components/admin/PartenaireModal.tsx
 import { useState, useEffect } from 'react';
 import type { Partenaire } from '../../services/partenaireService';
+import { 
+  FaTimes, 
+  FaUpload, 
+  FaTrash, 
+  FaSpinner, 
+  FaCheck,
+  FaGlobe,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaToggleOn,
+  FaBuilding,
+  FaUser,
+  FaUsers,
+  FaUniversity
+} from 'react-icons/fa';
 
 interface PartenaireModalProps {
   isOpen: boolean;
@@ -8,6 +25,45 @@ interface PartenaireModalProps {
   onSave: (data: FormData) => Promise<void>;
   partenaire?: Partenaire | null;
 }
+
+// Types de partenaires avec leurs couleurs VINA
+const TYPE_OPTIONS = [
+  { value: 'entreprise', label: 'Entreprise', icon: FaBuilding, color: 'olive' },
+  { value: 'individu', label: 'Individu', icon: FaUser, color: 'water' },
+  { value: 'association', label: 'Association', icon: FaUsers, color: 'sun' },
+  { value: 'institution', label: 'Institution', icon: FaUniversity, color: 'earth' },
+];
+
+const typeColors = {
+  olive: { 
+    bg: 'bg-olive-nature/10', 
+    text: 'text-olive-nature', 
+    border: 'border-olive-nature/30',
+    light: 'bg-olive-nature/5',
+    button: 'from-olive-nature to-forest-deep'
+  },
+  water: { 
+    bg: 'bg-water-blue/10', 
+    text: 'text-water-blue', 
+    border: 'border-water-blue/30',
+    light: 'bg-water-blue/5',
+    button: 'from-water-blue to-sky-soft'
+  },
+  sun: { 
+    bg: 'bg-sun-gold/10', 
+    text: 'text-sun-gold', 
+    border: 'border-sun-gold/30',
+    light: 'bg-sun-gold/5',
+    button: 'from-sun-gold to-soft-sun'
+  },
+  earth: { 
+    bg: 'bg-earth-brown/10', 
+    text: 'text-earth-brown', 
+    border: 'border-earth-brown/30',
+    light: 'bg-earth-brown/5',
+    button: 'from-earth-brown to-forest-deep'
+  },
+};
 
 export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }: PartenaireModalProps) {
   const [formData, setFormData] = useState({
@@ -27,65 +83,70 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+
+  // Obtenir les couleurs pour le type sélectionné
+  const selectedType = TYPE_OPTIONS.find(t => t.value === formData.type)?.color || 'olive';
+  const colors = typeColors[selectedType as keyof typeof typeColors];
 
   useEffect(() => {
-    if (partenaire) {
-      setFormData({
-        nom: partenaire.nom || '',
-        type: partenaire.type || 'entreprise',
-        descriptionFr: partenaire.descriptionFr || '',
-        descriptionEn: partenaire.descriptionEn || '',
-        siteWeb: partenaire.siteWeb || '',
-        email: partenaire.email || '',
-        telephone: partenaire.telephone || '',
-        adresse: partenaire.adresse || '',
-        dateDebutPartenaire: partenaire.dateDebutPartenaire ? new Date(partenaire.dateDebutPartenaire).toISOString().split('T')[0] : '',
-        actif: partenaire.actif !== undefined ? partenaire.actif : true,
-      });
-      
-      if (partenaire.logoUrl) {
-        setLogoPreview(`http://localhost:5005/${partenaire.logoUrl}`);
+    if (isOpen) {
+      if (partenaire) {
+        setFormData({
+          nom: partenaire.nom || '',
+          type: partenaire.type || 'entreprise',
+          descriptionFr: partenaire.descriptionFr || '',
+          descriptionEn: partenaire.descriptionEn || '',
+          siteWeb: partenaire.siteWeb || '',
+          email: partenaire.email || '',
+          telephone: partenaire.telephone || '',
+          adresse: partenaire.adresse || '',
+          dateDebutPartenaire: partenaire.dateDebutPartenaire ? new Date(partenaire.dateDebutPartenaire).toISOString().split('T')[0] : '',
+          actif: partenaire.actif !== undefined ? partenaire.actif : true,
+        });
+        
+        if (partenaire.logoUrl) {
+          setLogoPreview(`https://web-production-03b53.up.railway.app/${partenaire.logoUrl}`);
+        }
+      } else {
+        const today = new Date().toISOString().split('T')[0];
+        setFormData({
+          nom: '',
+          type: 'entreprise',
+          descriptionFr: '',
+          descriptionEn: '',
+          siteWeb: '',
+          email: '',
+          telephone: '',
+          adresse: '',
+          dateDebutPartenaire: today,
+          actif: true,
+        });
+        setLogoFile(null);
+        setLogoPreview('');
       }
-    } else {
-      const today = new Date().toISOString().split('T')[0];
-      setFormData({
-        nom: '',
-        type: 'entreprise',
-        descriptionFr: '',
-        descriptionEn: '',
-        siteWeb: '',
-        email: '',
-        telephone: '',
-        adresse: '',
-        dateDebutPartenaire: today,
-        actif: true,
-      });
-      setLogoFile(null);
-      setLogoPreview('');
+      setErrors({});
+      setTouchedFields(new Set());
     }
-    setErrors({});
-  }, [partenaire]);
+  }, [isOpen, partenaire]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validation de la taille (max 5MB pour les logos)
       if (file.size > 5 * 1024 * 1024) {
         setErrors(prev => ({ ...prev, logo: 'Le logo ne doit pas dépasser 5MB' }));
         return;
       }
 
-      // Validation du type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/jpg'];
       if (!allowedTypes.includes(file.type.toLowerCase())) {
-        setErrors(prev => ({ ...prev, logo: 'Format d\'image non supporté. Utilisez JPG, JPEG, PNG, GIF, SVG ou WEBP.' }));
+        setErrors(prev => ({ ...prev, logo: 'Format non supporté. Utilisez JPG, PNG, GIF, SVG ou WEBP.' }));
         return;
       }
 
       setLogoFile(file);
       setErrors(prev => ({ ...prev, logo: '' }));
       
-      // Créer une preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result as string);
@@ -99,18 +160,13 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
     
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }));
+      setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
     
-    // Effacer l'erreur quand l'utilisateur commence à taper
+    setTouchedFields(prev => new Set(prev).add(name));
+    
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -120,7 +176,7 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
     const newErrors: Record<string, string> = {};
 
     if (!formData.nom.trim()) newErrors.nom = 'Le nom est requis';
-    if (!formData.dateDebutPartenaire) newErrors.dateDebutPartenaire = 'La date de début de partenariat est requise';
+    if (!formData.dateDebutPartenaire) newErrors.dateDebutPartenaire = 'La date de début est requise';
     
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Format d\'email invalide';
@@ -138,6 +194,8 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
     e.preventDefault();
     
     if (!validateForm()) {
+      const firstError = document.querySelector('.border-red-500');
+      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -146,33 +204,12 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
     try {
       const formDataToSend = new FormData();
       
-      // Ajouter les champs texte
-      formDataToSend.append('nom', formData.nom);
-      formDataToSend.append('type', formData.type);
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          formDataToSend.append(key, value.toString());
+        }
+      });
       
-      if (formData.descriptionFr) {
-        formDataToSend.append('descriptionFr', formData.descriptionFr);
-      }
-      if (formData.descriptionEn) {
-        formDataToSend.append('descriptionEn', formData.descriptionEn);
-      }
-      if (formData.siteWeb) {
-        formDataToSend.append('siteWeb', formData.siteWeb);
-      }
-      if (formData.email) {
-        formDataToSend.append('email', formData.email);
-      }
-      if (formData.telephone) {
-        formDataToSend.append('telephone', formData.telephone);
-      }
-      if (formData.adresse) {
-        formDataToSend.append('adresse', formData.adresse);
-      }
-      
-      formDataToSend.append('dateDebutPartenaire', formData.dateDebutPartenaire);
-      formDataToSend.append('actif', formData.actif.toString());
-      
-      // Ajouter le logo si il existe
       if (logoFile) {
         formDataToSend.append('logoFile', logoFile);
       }
@@ -181,7 +218,7 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
       onClose();
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement:', error);
-      alert('Une erreur est survenue lors de l\'enregistrement');
+      setErrors(prev => ({ ...prev, submit: 'Erreur lors de la sauvegarde' }));
     } finally {
       setIsSubmitting(false);
     }
@@ -189,178 +226,183 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
 
   if (!isOpen) return null;
 
+  const TypeIcon = TYPE_OPTIONS.find(t => t.value === formData.type)?.icon || FaBuilding;
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Overlay */}
-        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose} />
+        <div className="fixed inset-0 transition-opacity bg-premium-dark bg-opacity-60 backdrop-blur-sm" onClick={onClose} />
 
-        {/* Modal */}
-        <div className="inline-block w-full max-w-4xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-lg shadow-xl">
-          {/* En-tête */}
-          <div className="px-6 py-4 bg-gray-50 border-b">
+        {/* Modal - Taille réduite */}
+        <div className="inline-block w-full max-w-3xl my-8 overflow-hidden text-left align-middle transition-all transform bg-warm-white rounded-2xl shadow-2xl border border-border-light">
+          {/* En-tête compact avec couleurs VINA */}
+          <div className={`px-5 py-3 ${partenaire ? 'bg-gradient-to-r from-water-blue to-sky-soft' : 'bg-gradient-to-r from-olive-nature to-forest-deep'}`}>
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {partenaire ? 'Modifier le partenaire' : 'Nouveau partenaire'}
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {partenaire ? 'Modifiez les informations du partenaire' : 'Remplissez les informations du nouveau partenaire'}
-                </p>
+              <div className="flex items-center space-x-2">
+                <div className="p-1.5 bg-warm-white bg-opacity-20 rounded-lg">
+                  <TypeIcon className="w-4 h-4 text-warm-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-warm-white">
+                    {partenaire ? 'Modifier le partenaire' : 'Nouveau partenaire'}
+                  </h3>
+                  <p className="text-[10px] text-warm-white text-opacity-90">
+                    {partenaire ? 'Modifiez les informations' : 'Remplissez les informations'}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-500 transition-colors"
+                className="p-1 text-warm-white hover:bg-warm-white hover:bg-opacity-20 rounded-lg transition-all"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <FaTimes className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Formulaire */}
+          {/* Formulaire - Hauteur réduite */}
           <form onSubmit={handleSubmit} encType="multipart/form-data">
-            <div className="px-6 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="px-5 py-3 space-y-3 max-h-[60vh] overflow-y-auto">
+              {/* Message d'erreur global */}
+              {errors.submit && (
+                <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 flex items-center">
+                  <span>{errors.submit}</span>
+                </div>
+              )}
+
               {/* Section Nom et Type */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom du partenaire *
+                  <label className="block text-xs font-medium text-forest-deep mb-1">
+                    Nom du partenaire <span className="text-sun-gold">*</span>
                   </label>
                   <input
                     type="text"
                     name="nom"
                     value={formData.nom}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${errors.nom ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
+                    onBlur={() => setTouchedFields(prev => new Set(prev).add('nom'))}
+                    className={`w-full px-3 py-1.5 text-sm border ${
+                      touchedFields.has('nom') && errors.nom 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-border-light'
+                    } rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white`}
                     placeholder="Ex: Entreprise ABC"
                   />
-                  {errors.nom && <p className="mt-1 text-sm text-red-600">{errors.nom}</p>}
+                  {touchedFields.has('nom') && errors.nom && (
+                    <p className="mt-1 text-xs text-red-600">{errors.nom}</p>
+                  )}
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-forest-deep mb-1">
                     Type de partenaire *
                   </label>
-                  <select
-                    name="type"
-                    value={formData.type}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="entreprise">Entreprise</option>
-                    <option value="individu">Individu</option>
-                    <option value="association">Association</option>
-                    <option value="institution">Institution</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Section Logo */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Logo du partenaire
-                </label>
-                <div className="space-y-4">
-                  <div className="flex flex-col md:flex-row items-center gap-6">
-                    <div className="flex-shrink-0">
-                      <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                        {logoPreview ? (
-                          <div className="relative w-full h-full">
-                            <img 
-                              src={logoPreview} 
-                              alt="Logo preview" 
-                              className="w-full h-full object-contain p-4"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setLogoFile(null);
-                                setLogoPreview('');
-                              }}
-                              className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="text-center p-4">
-                            <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span className="text-xs text-gray-500 mt-2">Aucun logo</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex-1">
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <svg className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                          <p className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">Cliquez pour uploader</span>
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            PNG, JPG, GIF, SVG, WEBP (Max. 5MB)
-                          </p>
-                        </div>
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleLogoChange}
-                        />
-                      </label>
-                      {errors.logo && <p className="mt-1 text-sm text-red-600">{errors.logo}</p>}
+                  <div className="relative">
+                    <select
+                      name="type"
+                      value={formData.type}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all appearance-none bg-warm-white pr-8`}
+                      style={{ color: colors.text }}
+                    >
+                      {TYPE_OPTIONS.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <TypeIcon className={`w-3 h-3 ${colors.text}`} />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Le logo sera affiché sur la page des partenaires. Taille recommandée: 400x400px
-                  </p>
                 </div>
               </div>
 
-              {/* Section Descriptions */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Section Logo compacte */}
+              <div className="bg-ultra-light p-3 rounded-xl border border-border-light">
+                <label className="block text-xs font-medium text-forest-deep mb-2">
+                  Logo du partenaire
+                </label>
+                <div className="flex items-center gap-3">
+                  {/* Preview */}
+                  <div className="w-16 h-16 border-2 border-dashed border-border-light rounded-lg flex items-center justify-center bg-warm-white flex-shrink-0">
+                    {logoPreview ? (
+                      <div className="relative w-full h-full">
+                        <img 
+                          src={logoPreview} 
+                          alt="Logo" 
+                          className="w-full h-full object-contain p-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLogoFile(null);
+                            setLogoPreview('');
+                          }}
+                          className="absolute -top-1 -right-1 bg-earth-brown text-warm-white p-0.5 rounded-full hover:bg-forest-deep shadow-sm"
+                        >
+                          <FaTrash className="w-2 h-2" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <FaUpload className="w-4 h-4 mx-auto text-text-secondary" />
+                        <span className="text-[8px] text-text-secondary mt-0.5 block">Logo</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Upload button */}
+                  <div className="flex-1">
+                    <label className="flex flex-col items-center justify-center h-16 border-2 border-dashed border-border-light rounded-lg cursor-pointer hover:border-olive-nature transition-colors bg-warm-white">
+                      <div className="flex flex-col items-center justify-center">
+                        <FaUpload className="w-3 h-3 text-text-secondary mb-0.5" />
+                        <p className="text-[10px] text-text-secondary">Cliquez pour uploader</p>
+                        <p className="text-[8px] text-border-light">PNG, JPG, SVG (Max 5MB)</p>
+                      </div>
+                      <input type="file" className="hidden" accept="image/*" onChange={handleLogoChange} />
+                    </label>
+                    {errors.logo && <p className="mt-1 text-[10px] text-red-600">{errors.logo}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section Descriptions compactes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description française
+                  <label className="block text-xs font-medium text-forest-deep mb-1">
+                    Description FR
                   </label>
                   <textarea
                     name="descriptionFr"
                     value={formData.descriptionFr}
                     onChange={handleChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    rows={2}
+                    className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all resize-none bg-warm-white"
                     placeholder="Description en français..."
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description anglaise
+                  <label className="block text-xs font-medium text-forest-deep mb-1">
+                    Description EN
                   </label>
                   <textarea
                     name="descriptionEn"
                     value={formData.descriptionEn}
                     onChange={handleChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    rows={2}
+                    className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all resize-none bg-warm-white"
                     placeholder="Description in English..."
                   />
                 </div>
               </div>
 
-              {/* Section Coordonnées */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Section Coordonnées compactes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaGlobe className="w-3 h-3 mr-1 text-water-blue" />
                     Site web
                   </label>
                   <input
@@ -368,14 +410,17 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
                     name="siteWeb"
                     value={formData.siteWeb}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${errors.siteWeb ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-                    placeholder="https://www.exemple.com"
+                    className={`w-full px-3 py-1.5 text-sm border ${
+                      errors.siteWeb ? 'border-red-500' : 'border-border-light'
+                    } rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white`}
+                    placeholder="https://..."
                   />
-                  {errors.siteWeb && <p className="mt-1 text-sm text-red-600">{errors.siteWeb}</p>}
+                  {errors.siteWeb && <p className="mt-1 text-xs text-red-600">{errors.siteWeb}</p>}
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaEnvelope className="w-3 h-3 mr-1 text-sun-gold" />
                     Email
                   </label>
                   <input
@@ -383,16 +428,19 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
+                    className={`w-full px-3 py-1.5 text-sm border ${
+                      errors.email ? 'border-red-500' : 'border-border-light'
+                    } rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white`}
                     placeholder="contact@exemple.com"
                   />
-                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                  {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaPhone className="w-3 h-3 mr-1 text-olive-nature" />
                     Téléphone
                   </label>
                   <input
@@ -400,13 +448,14 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
                     name="telephone"
                     value={formData.telephone}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white"
                     placeholder="+261 XX XX XXX XX"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaMapMarkerAlt className="w-3 h-3 mr-1 text-earth-brown" />
                     Adresse
                   </label>
                   <input
@@ -414,61 +463,65 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
                     name="adresse"
                     value={formData.adresse}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-3 py-1.5 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white"
                     placeholder="Adresse complète"
                   />
                 </div>
               </div>
 
-              {/* Section Date et Statut */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Section Date et Statut compactes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date de début du partenariat *
+                  <label className="block text-xs font-medium text-forest-deep mb-1 flex items-center">
+                    <FaCalendarAlt className="w-3 h-3 mr-1 text-sun-gold" />
+                    Date début <span className="text-sun-gold ml-1">*</span>
                   </label>
                   <input
                     type="date"
                     name="dateDebutPartenaire"
                     value={formData.dateDebutPartenaire}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${errors.dateDebutPartenaire ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500`}
+                    onBlur={() => setTouchedFields(prev => new Set(prev).add('dateDebutPartenaire'))}
+                    className={`w-full px-3 py-1.5 text-sm border ${
+                      touchedFields.has('dateDebutPartenaire') && errors.dateDebutPartenaire 
+                        ? 'border-red-500' 
+                        : 'border-border-light'
+                    } rounded-lg focus:ring-2 focus:ring-olive-nature focus:border-olive-nature transition-all bg-warm-white`}
                   />
-                  {errors.dateDebutPartenaire && <p className="mt-1 text-sm text-red-600">{errors.dateDebutPartenaire}</p>}
+                  {touchedFields.has('dateDebutPartenaire') && errors.dateDebutPartenaire && (
+                    <p className="mt-1 text-xs text-red-600">{errors.dateDebutPartenaire}</p>
+                  )}
                 </div>
                 
                 <div className="flex items-center">
-                  <div className="flex items-center h-5">
+                  <div className="bg-ultra-light p-2 rounded-lg border border-border-light flex items-center gap-2">
+                    <FaToggleOn className={`w-4 h-4 ${formData.actif ? 'text-olive-nature' : 'text-text-secondary'}`} />
                     <input
                       type="checkbox"
                       id="actif"
                       name="actif"
                       checked={formData.actif}
                       onChange={handleChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-3.5 h-3.5 text-olive-nature border-border-light rounded focus:ring-olive-nature"
                     />
-                  </div>
-                  <div className="ml-3 text-sm">
-                    <label htmlFor="actif" className="font-medium text-gray-700">
+                    <label htmlFor="actif" className="text-xs font-medium text-forest-deep">
                       Partenaire actif
                     </label>
-                    <p className="text-gray-500">
-                      Le partenaire sera visible sur le site
-                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Pied de page */}
-            <div className="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                * Champs obligatoires
+            {/* Pied de page compact */}
+            <div className="px-5 py-2 bg-ultra-light border-t border-border-light flex justify-between items-center">
+              <div className="text-[10px] text-text-secondary">
+                <span className="text-sun-gold">*</span> Champs obligatoires
               </div>
-              <div className="flex space-x-3">
+              <div className="flex space-x-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-warm-white border border-border-light rounded-lg hover:bg-ultra-light transition-all"
                   disabled={isSubmitting}
                 >
                   Annuler
@@ -476,22 +529,17 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  className={`px-3 py-1.5 text-xs font-medium text-warm-white bg-gradient-to-r ${colors.button} rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center shadow-sm`}
                 >
                   {isSubmitting ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      {partenaire ? 'Modification...' : 'Création...'}
+                      <FaSpinner className="animate-spin w-3 h-3 mr-1" />
+                      {partenaire ? 'Modif...' : 'Créat...'}
                     </>
                   ) : (
                     <>
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {partenaire ? 'Modifier le partenaire' : 'Créer le partenaire'}
+                      <FaCheck className="w-3 h-3 mr-1" />
+                      {partenaire ? 'Modifier' : 'Créer'}
                     </>
                   )}
                 </button>
