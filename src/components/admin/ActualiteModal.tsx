@@ -35,6 +35,7 @@ const getTypeColors = (type: string) => {
 
 export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: ActualiteModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     titreFr: '',
     titreEn: '',
@@ -54,41 +55,44 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (actualite) {
-      setFormData({
-        titreFr: actualite.titreFr || '',
-        titreEn: actualite.titreEn || '',
-        contenuFr: actualite.contenuFr || '',
-        contenuEn: actualite.contenuEn || '',
-        type: actualite.type || 'nouvelle',
-        datePublication: actualite.datePublication ? new Date(actualite.datePublication).toISOString().split('T')[0] : '',
-        dateEvenement: actualite.dateEvenement ? new Date(actualite.dateEvenement).toISOString().split('T')[0] : '',
-        lieu: actualite.lieu || '',
-        important: actualite.important || false,
-      });
-      
-      if (actualite.imageUrl) {
-        setImagePreview(`https://web-production-03b53.up.railway.app/${actualite.imageUrl}`);
+    if (isOpen) {
+      setLoading(false);
+      if (actualite) {
+        setFormData({
+          titreFr: actualite.titreFr || '',
+          titreEn: actualite.titreEn || '',
+          contenuFr: actualite.contenuFr || '',
+          contenuEn: actualite.contenuEn || '',
+          type: actualite.type || 'nouvelle',
+          datePublication: actualite.datePublication ? new Date(actualite.datePublication).toISOString().split('T')[0] : '',
+          dateEvenement: actualite.dateEvenement ? new Date(actualite.dateEvenement).toISOString().split('T')[0] : '',
+          lieu: actualite.lieu || '',
+          important: actualite.important || false,
+        });
+        
+        if (actualite.imageUrl) {
+          setImagePreview(`https://web-production-03b53.up.railway.app/${actualite.imageUrl}`);
+        }
+      } else {
+        const today = new Date().toISOString().split('T')[0];
+        setFormData({
+          titreFr: '',
+          titreEn: '',
+          contenuFr: '',
+          contenuEn: '',
+          type: 'nouvelle',
+          datePublication: today,
+          dateEvenement: '',
+          lieu: '',
+          important: false,
+        });
+        setImageFile(null);
+        setImagePreview('');
+        setCurrentStep(1);
       }
-    } else {
-      const today = new Date().toISOString().split('T')[0];
-      setFormData({
-        titreFr: '',
-        titreEn: '',
-        contenuFr: '',
-        contenuEn: '',
-        type: 'nouvelle',
-        datePublication: today,
-        dateEvenement: '',
-        lieu: '',
-        important: false,
-      });
-      setImageFile(null);
-      setImagePreview('');
-      setCurrentStep(1);
+      setErrors({});
+      setTouchedFields(new Set());
     }
-    setErrors({});
-    setTouchedFields(new Set());
   }, [actualite, isOpen]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,15 +157,21 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
     return Object.keys(newErrors).length === 0;
   };
 
-  const nextStep = () => validateStep(currentStep) && setCurrentStep(prev => Math.min(prev + 1, 3));
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, 3));
+    }
+  };
+
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Important : empêche la soumission automatique
     
-    if (!validateStep(3) || isSubmitting) return;
+    if (!validateStep(3) || isSubmitting || loading) return;
 
     setIsSubmitting(true);
+    setLoading(true);
 
     try {
       const formDataToSend = new FormData();
@@ -174,9 +184,10 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
       onClose();
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de l\'enregistrement');
+      setErrors(prev => ({ ...prev, submit: 'Erreur lors de la sauvegarde' }));
     } finally {
       setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -219,6 +230,7 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
                 type="button"
                 onClick={onClose} 
                 className="p-1 text-warm-white hover:bg-warm-white/20 rounded-lg"
+                disabled={isSubmitting}
               >
                 <FaTimes className="w-5 h-5" />
               </button>
@@ -530,13 +542,14 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
                 ) : (
                   <button 
                     type="button" 
+                    onClick={handleSubmit}
                     disabled={isSubmitting}
                     className="px-4 py-2 text-xs font-medium text-white bg-gradient-to-r from-olive-nature to-forest-deep rounded-lg hover:from-forest-deep disabled:opacity-50 flex items-center gap-1"
                   >
                     {isSubmitting ? (
                       <>
                         <FaSpinner className="animate-spin w-3 h-3" />
-                        En cours...
+                        {actualite ? 'Modification...' : 'Création...'}
                       </>
                     ) : (
                       <>

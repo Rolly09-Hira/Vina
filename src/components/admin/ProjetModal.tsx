@@ -131,6 +131,7 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
   const [regions, setRegions] = useState<Region[]>([]);
   const [loadingRegions, setLoadingRegions] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     titreFr: '',
@@ -175,51 +176,54 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
 
   // Initialiser le formulaire
   useEffect(() => {
-    if (projet) {
-      setFormData({
-        titreFr: projet.titreFr || '',
-        titreEn: projet.titreEn || '',
-        descriptionFr: projet.descriptionFr || '',
-        descriptionEn: projet.descriptionEn || '',
-        objectifFr: projet.objectifFr || '',
-        objectifEn: projet.objectifEn || '',
-        domaineFr: projet.domaineFr || '',
-        domaineEn: projet.domaineEn || '',
-        dateDebut: projet.dateDebut ? new Date(projet.dateDebut).toISOString().split('T')[0] : '',
-        dateFin: projet.dateFin ? new Date(projet.dateFin).toISOString().split('T')[0] : '',
-        statut: projet.statut || 'en_cours',
-        regionId: projet.region?.id?.toString() || '',
-        beneficiaires: projet.beneficiaires?.toString() || '',
-      });
-      
-      if (projet.imageUrl) {
-        setImagePreview(`https://web-production-03b53.up.railway.app/${projet.imageUrl}`);
+    if (isOpen) {
+      setLoading(false);
+      if (projet) {
+        setFormData({
+          titreFr: projet.titreFr || '',
+          titreEn: projet.titreEn || '',
+          descriptionFr: projet.descriptionFr || '',
+          descriptionEn: projet.descriptionEn || '',
+          objectifFr: projet.objectifFr || '',
+          objectifEn: projet.objectifEn || '',
+          domaineFr: projet.domaineFr || '',
+          domaineEn: projet.domaineEn || '',
+          dateDebut: projet.dateDebut ? new Date(projet.dateDebut).toISOString().split('T')[0] : '',
+          dateFin: projet.dateFin ? new Date(projet.dateFin).toISOString().split('T')[0] : '',
+          statut: projet.statut || 'en_cours',
+          regionId: projet.region?.id?.toString() || '',
+          beneficiaires: projet.beneficiaires?.toString() || '',
+        });
+        
+        if (projet.imageUrl) {
+          setImagePreview(`https://web-production-03b53.up.railway.app/${projet.imageUrl}`);
+        }
+      } else {
+        // Réinitialiser pour un nouveau projet
+        const today = new Date().toISOString().split('T')[0];
+        setFormData({
+          titreFr: '',
+          titreEn: '',
+          descriptionFr: '',
+          descriptionEn: '',
+          objectifFr: '',
+          objectifEn: '',
+          domaineFr: '',
+          domaineEn: '',
+          dateDebut: today,
+          dateFin: '',
+          statut: 'a_venir',
+          regionId: '',
+          beneficiaires: '',
+        });
+        setImageFile(null);
+        setImagePreview('');
+        setCurrentStep(1);
       }
-    } else {
-      // Réinitialiser pour un nouveau projet
-      const today = new Date().toISOString().split('T')[0];
-      setFormData({
-        titreFr: '',
-        titreEn: '',
-        descriptionFr: '',
-        descriptionEn: '',
-        objectifFr: '',
-        objectifEn: '',
-        domaineFr: '',
-        domaineEn: '',
-        dateDebut: today,
-        dateFin: '',
-        statut: 'a_venir',
-        regionId: '',
-        beneficiaires: '',
-      });
-      setImageFile(null);
-      setImagePreview('');
-      setCurrentStep(1);
+      setErrors({});
+      setTouchedFields(new Set());
     }
-    setErrors({});
-    setTouchedFields(new Set());
-  }, [projet]);
+  }, [isOpen, projet]);
 
   // Déterminer le statut suggéré basé sur les dates
   const getSuggestedStatut = useMemo(() => {
@@ -284,10 +288,10 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
     
     setTouchedFields(prev => new Set(prev).add(name));
@@ -311,44 +315,57 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
     }
   };
 
-  const validateForm = () => {
+  const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.titreFr.trim()) newErrors.titreFr = 'Le titre français est requis';
-    if (!formData.titreEn.trim()) newErrors.titreEn = 'Le titre anglais est requis';
-    if (!formData.descriptionFr.trim()) newErrors.descriptionFr = 'La description française est requise';
-    if (!formData.descriptionEn.trim()) newErrors.descriptionEn = 'La description anglaise est requise';
-    if (!formData.objectifFr.trim()) newErrors.objectifFr = 'L\'objectif français est requis';
-    if (!formData.objectifEn.trim()) newErrors.objectifEn = 'L\'objectif anglais est requis';
-    if (!formData.domaineFr) newErrors.domaineFr = 'Le domaine est requis';
-    if (!formData.dateDebut) newErrors.dateDebut = 'La date de début est requise';
-    
-    if (formData.dateFin && formData.dateDebut) {
-      const dateDebut = new Date(formData.dateDebut);
-      const dateFin = new Date(formData.dateFin);
-      if (dateFin < dateDebut) {
-        newErrors.dateFin = 'La date de fin doit être après la date de début';
-      }
+    if (step === 1) {
+      if (!formData.titreFr.trim()) newErrors.titreFr = 'Requis';
+      if (!formData.titreEn.trim()) newErrors.titreEn = 'Required';
     }
 
-    if (formData.beneficiaires && parseInt(formData.beneficiaires) < 0) {
-      newErrors.beneficiaires = 'Le nombre de bénéficiaires doit être positif';
+    if (step === 2) {
+      if (!formData.objectifFr.trim()) newErrors.objectifFr = 'Requis';
+      if (!formData.objectifEn.trim()) newErrors.objectifEn = 'Required';
+    }
+
+    if (step === 3) {
+      if (!formData.descriptionFr.trim()) newErrors.descriptionFr = 'Requis';
+      if (!formData.descriptionEn.trim()) newErrors.descriptionEn = 'Required';
+      if (!formData.domaineFr) newErrors.domaineFr = 'Requis';
+      if (!formData.dateDebut) newErrors.dateDebut = 'Requis';
+      
+      if (formData.dateFin && formData.dateDebut) {
+        const dateDebut = new Date(formData.dateDebut);
+        const dateFin = new Date(formData.dateFin);
+        if (dateFin < dateDebut) {
+          newErrors.dateFin = 'Doit être après la date de début';
+        }
+      }
+
+      if (formData.beneficiaires && parseInt(formData.beneficiaires) < 0) {
+        newErrors.beneficiaires = 'Doit être positif';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      const firstError = document.querySelector('.border-red-500');
-      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, 3));
     }
+  };
+
+  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Important : empêche la soumission automatique du formulaire
+    
+    if (!validateStep(3) || isSubmitting || loading) return;
 
     setIsSubmitting(true);
+    setLoading(true);
 
     try {
       const formDataToSend = new FormData();
@@ -367,14 +384,12 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
       onClose();
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement:', error);
-      alert('Une erreur est survenue lors de l\'enregistrement');
+      setErrors(prev => ({ ...prev, submit: 'Erreur lors de la sauvegarde' }));
     } finally {
       setIsSubmitting(false);
+      setLoading(false);
     }
   };
-
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3));
-  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   if (!isOpen) return null;
 
@@ -422,6 +437,7 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
                 onClick={onClose}
                 className="p-1.5 text-warm-white hover:bg-warm-white hover:bg-opacity-20 rounded-lg transition-all"
                 title="Fermer"
+                disabled={isSubmitting}
               >
                 <FaTimes className="w-5 h-5" />
               </button>
@@ -461,7 +477,7 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
               {/* Barre de progression compacte */}
               <div className="mb-2">
                 <div className="flex justify-between text-xs text-text-secondary mb-1">
-                  <span>Progression</span>
+                  <span>Étape {currentStep}/3</span>
                   <span className="font-semibold text-olive-nature">{Math.round((currentStep / 3) * 100)}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-border-light rounded-full overflow-hidden">
@@ -686,7 +702,7 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
                     <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
                       <h4 className="text-sm font-semibold text-forest-deep mb-3 flex items-center">
                         <FaTag className="w-4 h-4 mr-2 text-sun-gold" />
-                        Domaine
+                        Domaine <span className="text-sun-gold ml-1">*</span>
                       </h4>
                       <div className="relative">
                         <select
@@ -752,6 +768,9 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
                         className="w-full px-3 py-2 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-sun-gold focus:border-sun-gold transition-all bg-warm-white"
                         placeholder="Ex: 1000"
                       />
+                      {errors.beneficiaires && (
+                        <p className="mt-1 text-xs text-red-600">{errors.beneficiaires}</p>
+                      )}
                     </div>
                   </div>
 
@@ -760,7 +779,7 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
                     <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
                       <h4 className="text-sm font-semibold text-forest-deep mb-3 flex items-center">
                         <FaCalendarAlt className="w-4 h-4 mr-2 text-water-blue" />
-                        Début <span className="text-sun-gold">*</span>
+                        Début <span className="text-sun-gold ml-1">*</span>
                       </h4>
                       <input
                         type="date"
@@ -786,8 +805,13 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
                         name="dateFin"
                         value={formData.dateFin}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all bg-warm-white"
+                        className={`w-full px-3 py-2 text-sm border ${
+                          errors.dateFin ? 'border-red-500' : 'border-border-light'
+                        } rounded-lg focus:ring-2 focus:ring-water-blue focus:border-water-blue transition-all bg-warm-white`}
                       />
+                      {errors.dateFin && (
+                        <p className="mt-1 text-xs text-red-600">{errors.dateFin}</p>
+                      )}
                     </div>
 
                     <div className="bg-ultra-light p-4 rounded-xl border border-border-light">
@@ -887,11 +911,22 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
               </div>
               
               <div className="flex space-x-2">
+                {/* Bouton Annuler */}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-xs font-medium text-text-secondary bg-warm-white border border-border-light rounded-lg hover:bg-ultra-light transition-all"
+                  disabled={isSubmitting}
+                >
+                  Annuler
+                </button>
+
                 {currentStep > 1 && (
                   <button
                     type="button"  
                     onClick={prevStep}
                     className="px-4 py-2 text-xs font-medium text-forest-deep bg-warm-white border border-border-light rounded-lg hover:bg-ultra-light transition-all flex items-center"
+                    disabled={isSubmitting}
                   >
                     <FaArrowLeft className="w-3 h-3 mr-1" />
                     Préc
@@ -903,6 +938,7 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
                     type="button"
                     onClick={nextStep}
                     className="px-4 py-2 text-xs font-medium text-warm-white bg-gradient-to-r from-olive-nature to-forest-deep rounded-lg hover:from-forest-deep hover:to-premium-dark transition-all flex items-center shadow-md"
+                    disabled={isSubmitting}
                   >
                     Suiv
                     <FaArrowRight className="w-3 h-3 ml-1" />
@@ -910,13 +946,14 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
                 ) : (
                   <button
                     type="button"
+                    onClick={handleSubmit}
                     disabled={isSubmitting}
                     className="px-4 py-2 text-xs font-medium text-warm-white bg-gradient-to-r from-olive-nature to-forest-deep rounded-lg hover:from-forest-deep hover:to-premium-dark transition-all disabled:opacity-50 flex items-center shadow-md"
                   >
                     {isSubmitting ? (
                       <>
                         <FaSpinner className="animate-spin w-3 h-3 mr-1" />
-                        {projet ? 'Modif...' : 'Créer...'}
+                        {projet ? 'Modification...' : 'Création...'}
                       </>
                     ) : (
                       <>
