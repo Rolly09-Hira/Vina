@@ -67,7 +67,7 @@ export default function UserModal({
         if (user.photoUrl) {
           const photoUrl = user.photoUrl.startsWith('http') 
             ? user.photoUrl 
-            : `https://web-production-03b53.up.railway.app/${user.photoUrl}`;
+            : `ttps://web-production-03b53.up.railway.app/${user.photoUrl}`;
           setPhotoPreview(photoUrl);
         } else {
           setPhotoPreview(null);

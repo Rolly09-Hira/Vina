@@ -144,7 +144,7 @@ export default function UtilisateursAdmin() {
     if (photoUrl.startsWith('http')) {
       return photoUrl;
     }
-    return `https://web-production-03b53.up.railway.app/${photoUrl}`;
+    return `ttps://web-production-03b53.up.railway.app/${photoUrl}`;
   };
 
   const getInitials = (nom: string) => {

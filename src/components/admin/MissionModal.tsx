@@ -66,10 +66,10 @@ export default function MissionModal({ isOpen, onClose, onSave, mission }: Missi
           actif: mission.actif,
         });
         if (mission.iconUrl) {
-          setIconPreview(`https://web-production-03b53.up.railway.app/${mission.iconUrl}`);
+          setIconPreview(`${mission.iconUrl}`);
         }
         if (mission.imageUrl) {
-          setImagePreview(`https://web-production-03b53.up.railway.app/${mission.imageUrl}`);
+          setImagePreview(`${mission.imageUrl}`);
         }
       } else {
         resetForm();

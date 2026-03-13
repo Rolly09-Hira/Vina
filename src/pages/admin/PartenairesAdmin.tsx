@@ -267,7 +267,7 @@ export default function PartenairesAdmin() {
                       <div className="flex items-start space-x-4">
                         {partenaire.logoUrl && (
                           <img
-                            src={`https://web-production-03b53.up.railway.app/${partenaire.logoUrl}`}
+                            src={partenaire.logoUrl}
                             alt={partenaire.nom}
                             className="w-16 h-16 object-contain rounded-lg bg-warm-white p-1 border border-border-light"
                             onError={(e) => {

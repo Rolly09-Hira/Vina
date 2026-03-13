@@ -108,7 +108,7 @@ export default function PersonnelAdmin() {
 
   const getPhotoUrl = (p: Personnel) => {
     if (!p.photoUrl) return null;
-    return p.photoUrl.startsWith('http') ? p.photoUrl : `https://web-production-03b53.up.railway.app/${p.photoUrl}`;
+    return p.photoUrl.startsWith('http') ? p.photoUrl : `${p.photoUrl}`;
   };
 
   // Filtrer les départements pour n'avoir que ceux qui existent

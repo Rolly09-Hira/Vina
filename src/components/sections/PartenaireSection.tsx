@@ -337,7 +337,7 @@ export default function PartenaireSection() {
                   <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden mb-4 ring-4 ring-border-light group-hover:ring-sun-gold/40 transition-all duration-500 bg-ultra-light flex items-center justify-center flex-shrink-0">
                     {partenaire.logoUrl ? (
                       <img
-                        src={`https://web-production-03b53.up.railway.app/${partenaire.logoUrl}`}
+                        src={partenaire.logoUrl}
                         alt={partenaire.nom}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -388,7 +388,7 @@ export default function PartenaireSection() {
                         <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-sun-gold flex-shrink-0 bg-ultra-light flex items-center justify-center">
                           {partenaire.logoUrl ? (
                             <img
-                              src={`https://web-production-03b53.up.railway.app/${partenaire.logoUrl}`}
+                              src={partenaire.logoUrl}
                               alt={partenaire.nom}
                               className="w-full h-full object-cover"
                             />

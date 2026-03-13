@@ -106,7 +106,7 @@ export default function PartenaireModal({ isOpen, onClose, onSave, partenaire }:
         });
         
         if (partenaire.logoUrl) {
-          setLogoPreview(`https://web-production-03b53.up.railway.app/${partenaire.logoUrl}`);
+          setLogoPreview(`${partenaire.logoUrl}`);
         }
       } else {
         const today = new Date().toISOString().split('T')[0];

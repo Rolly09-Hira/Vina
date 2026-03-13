@@ -196,7 +196,7 @@ export default function ProjetModal({ isOpen, onClose, onSave, projet }: ProjetM
         });
         
         if (projet.imageUrl) {
-          setImagePreview(`https://web-production-03b53.up.railway.app/${projet.imageUrl}`);
+          setImagePreview(`${projet.imageUrl}`);
         }
       } else {
         // Réinitialiser pour un nouveau projet

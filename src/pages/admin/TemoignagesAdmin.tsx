@@ -270,7 +270,7 @@ export default function TemoignagesAdmin() {
                       <div className="flex items-start space-x-4">
                         {temoignage.photoUrl && (
                           <img
-                            src={`https://web-production-03b53.up.railway.app/${temoignage.photoUrl}`}
+                            src={temoignage.photoUrl}
                             alt={temoignage.auteurFr}
                             className="w-16 h-16 object-cover rounded-lg flex-shrink-0 border border-border-light"
                             onError={(e) => {

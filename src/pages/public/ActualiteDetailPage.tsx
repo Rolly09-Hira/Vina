@@ -218,7 +218,7 @@ export default function ActualiteDetailPage() {
               <div className="relative h-96 overflow-hidden">
                 {actualite.imageUrl ? (
                   <img
-                    src={`https://web-production-03b53.up.railway.app/${actualite.imageUrl}`}
+                    src={actualite.imageUrl}
                     alt={language === 'fr' ? actualite.titreFr : actualite.titreEn}
                     className="w-full h-full object-cover"
                   />
@@ -314,7 +314,7 @@ export default function ActualiteDetailPage() {
                           <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                             {rel.imageUrl ? (
                               <img
-                                src={`https://web-production-03b53.up.railway.app/${rel.imageUrl}`}
+                                src={rel.imageUrl}
                                 alt={language === 'fr' ? rel.titreFr : rel.titreEn}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                               />

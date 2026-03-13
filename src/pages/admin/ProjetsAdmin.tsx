@@ -279,7 +279,7 @@ export default function ProjetsAdmin() {
                     <td className="px-6 py-4">
                       {projet.imageUrl ? (
                         <img
-                          src={`https://web-production-03b53.up.railway.app/${projet.imageUrl}`}
+                          src={projet.imageUrl}
                           alt={projet.titreFr}
                           className="w-16 h-16 object-cover rounded-lg border border-border-light"
                           onError={(e) => {

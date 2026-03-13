@@ -204,7 +204,7 @@ export default function Personnel() {
     if (!member.photoUrl) return null;
     return member.photoUrl.startsWith('http') 
       ? member.photoUrl 
-      : `https://web-production-03b53.up.railway.app/${member.photoUrl}`;
+      : `${member.photoUrl}`;
   };
 
   const getDisplayPoste = (member: Personnel) => {

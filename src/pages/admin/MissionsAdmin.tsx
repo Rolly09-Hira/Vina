@@ -270,7 +270,7 @@ export default function MissionsAdmin() {
                           <div className="flex items-center space-x-2">
                             <span className="text-xs text-text-secondary">Icône:</span>
                             <img
-                              src={`https://web-production-03b53.up.railway.app/${mission.iconUrl}`}
+                              src={mission.iconUrl}
                               alt="Icône"
                               className="w-8 h-8 object-contain rounded border border-border-light bg-ultra-light"
                               onError={(e) => {
@@ -283,7 +283,7 @@ export default function MissionsAdmin() {
                           <div className="flex items-center space-x-2">
                             <span className="text-xs text-text-secondary">Image:</span>
                             <img
-                              src={`https://web-production-03b53.up.railway.app/${mission.imageUrl}`}
+                              src={mission.imageUrl}
                               alt="Image"
                               className="w-12 h-8 object-cover rounded border border-border-light"
                               onError={(e) => {

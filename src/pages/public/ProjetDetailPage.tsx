@@ -274,7 +274,7 @@ export default function ProjetDetailPage() {
           <div className="relative h-96 md:h-[500px] overflow-hidden">
             {projet.imageUrl ? (
               <img
-                src={`https://web-production-03b53.up.railway.app/${projet.imageUrl}`}
+                src={projet.imageUrl}
                 alt={language === 'fr' ? projet.titreFr : projet.titreEn}
                 className="w-full h-full object-cover"
               />
@@ -351,7 +351,7 @@ export default function ProjetDetailPage() {
                         <div className="flex items-center gap-3">
                           {tem.photoUrl ? (
                             <img
-                              src={`https://web-production-03b53.up.railway.app/${tem.photoUrl}`}
+                              src={tem.photoUrl}
                               alt={language === 'fr' ? tem.auteurFr : tem.auteurEn}
                               className="w-10 h-10 rounded-full object-cover"
                             />

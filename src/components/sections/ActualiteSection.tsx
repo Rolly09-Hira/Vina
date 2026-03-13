@@ -348,7 +348,7 @@ export default function ActualiteSection() {
                 <div className="relative h-48 flex-shrink-0 overflow-hidden">
                   {actu.imageUrl ? (
                     <img
-                      src={`https://web-production-03b53.up.railway.app/${actu.imageUrl}`}
+                      src={actu.imageUrl}
                       alt={language === 'fr' ? actu.titreFr : actu.titreEn}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       onError={(e) => {

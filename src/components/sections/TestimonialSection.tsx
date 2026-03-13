@@ -603,7 +603,7 @@ export default function TestimonialSection() {
                   {temoignage.typeTemoignage === 'PHOTO' && temoignage.photoUrl && (
                     <div className="absolute inset-0">
                       <img
-                        src={`https://web-production-03b53.up.railway.app/${temoignage.photoUrl}`}
+                        src={temoignage.photoUrl}
                         alt={auteur}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
@@ -623,7 +623,7 @@ export default function TestimonialSection() {
                             videoRefs.current.delete(temoignage.id);
                           }
                         }}
-                        src={`https://web-production-03b53.up.railway.app/${temoignage.videoUrl}`}
+                        src={temoignage.videoUrl}
                         className="w-full h-full object-cover"
                         loop
                         muted={isMuted}
@@ -772,7 +772,7 @@ export default function TestimonialSection() {
                     {(temoignage.typeTemoignage === 'PHOTO' || temoignage.typeTemoignage === 'PHOTO_VIDEO') && temoignage.photoUrl ? (
                       <div className="w-14 h-14 rounded-full overflow-hidden ring-3 ring-olive-nature ring-offset-2 mr-4 shadow-xl flex-shrink-0">
                         <img
-                          src={`https://web-production-03b53.up.railway.app/${temoignage.photoUrl}`}
+                          src={temoignage.photoUrl}
                           alt={auteur}
                           className="w-full h-full object-cover"
                         />

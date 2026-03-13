@@ -47,7 +47,7 @@ export default function AdminNavbar({ toggleSidebar, isSidebarOpen }: AdminNavba
   }, []);
 
   const getAvatarUrl = () => {
-    return user?.photoUrl ? `https://web-production-03b53.up.railway.app/${user.photoUrl}` : undefined;
+    return user?.photoUrl ? {src:user.photoUrl} : undefined;
   };
 
   const getUserInitials = () => {
@@ -222,7 +222,7 @@ export default function AdminNavbar({ toggleSidebar, isSidebarOpen }: AdminNavba
                   >
                     {getAvatarUrl() ? (
                       <img
-                        src={getAvatarUrl()}
+                        {...getAvatarUrl()}
                         alt={user.nom}
                         className="w-10 h-10 rounded-full object-cover border-2 border-olive-nature group-hover:border-accent transition-colors shadow-md"
                       />

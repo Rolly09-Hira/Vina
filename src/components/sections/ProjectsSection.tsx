@@ -474,7 +474,7 @@ export default function ProjectsSection() {
                     <div className={`absolute inset-0 bg-gradient-to-r ${colors.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 z-10`} />
                     {projet.imageUrl ? (
                       <img
-                        src={`https://web-production-03b53.up.railway.app/${projet.imageUrl}`}
+                        src={projet.imageUrl}
                         alt={language === 'fr' ? projet.titreFr : projet.titreEn}
                         className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                       />
@@ -569,7 +569,7 @@ export default function ProjectsSection() {
                   <div className="relative h-48 overflow-hidden">
                     {projet.imageUrl ? (
                       <img
-                        src={`https://web-production-03b53.up.railway.app/${projet.imageUrl}`}
+                        src={projet.imageUrl}
                         alt={language === 'fr' ? projet.titreFr : projet.titreEn}
                         className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                       />

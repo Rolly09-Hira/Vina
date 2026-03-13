@@ -91,7 +91,7 @@ export default function PersonnelModal({
         if (personnel.photoUrl) {
           const photoUrl = personnel.photoUrl.startsWith('http') 
             ? personnel.photoUrl 
-            : `https://web-production-03b53.up.railway.app/${personnel.photoUrl}`;
+            : `${personnel.photoUrl}`;
           setPhotoPreview(photoUrl);
         } else {
           setPhotoPreview(null);

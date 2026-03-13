@@ -71,7 +71,7 @@ export default function ActualiteModal({ isOpen, onClose, onSave, actualite }: A
         });
         
         if (actualite.imageUrl) {
-          setImagePreview(`https://web-production-03b53.up.railway.app/${actualite.imageUrl}`);
+          setImagePreview(`${actualite.imageUrl}`);
         }
       } else {
         const today = new Date().toISOString().split('T')[0];

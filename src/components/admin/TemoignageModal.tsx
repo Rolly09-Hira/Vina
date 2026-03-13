@@ -99,10 +99,10 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
           ordreAffichage: temoignage.ordreAffichage || 1,
         });
         if (temoignage.photoUrl) {
-          setPhotoPreview(`https://web-production-03b53.up.railway.app/${temoignage.photoUrl}`);
+          setPhotoPreview(`${temoignage.photoUrl}`);
         }
         if (temoignage.videoUrl) {
-          setVideoPreview(`https://web-production-03b53.up.railway.app/${temoignage.videoUrl}`);
+          setVideoPreview(`${temoignage.videoUrl}`);
         }
       } else {
         resetForm();

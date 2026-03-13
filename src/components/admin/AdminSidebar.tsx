@@ -377,7 +377,7 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
             <div className="flex items-center space-x-3">
               {user?.photoUrl ? (
                 <img
-                  src={`https://web-production-03b53.up.railway.app/${user.photoUrl}`}
+                  src={user.photoUrl}
                   alt={user.nom}
                   className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                   style={{ borderColor: colors.accent, borderWidth: '2px' }}

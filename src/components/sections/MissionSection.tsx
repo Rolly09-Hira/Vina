@@ -300,7 +300,7 @@ export default function MissionSection() {
                       `}>
                         {mission.imageUrl ? (
                           <img
-                            src={`https://web-production-03b53.up.railway.app/${mission.imageUrl.startsWith('/') ? mission.imageUrl.slice(1) : mission.imageUrl}`}
+                            src={mission.imageUrl.startsWith('/') ? mission.imageUrl.slice(1) : mission.imageUrl}
                             alt={language === 'fr' ? mission.titreFr : mission.titreEn}
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -335,7 +335,7 @@ export default function MissionSection() {
                       `}>
                         {mission.iconUrl ? (
                           <img 
-                            src={`https://web-production-03b53.up.railway.app/${mission.iconUrl.startsWith('/') ? mission.iconUrl.slice(1) : mission.iconUrl}`}
+                            src={mission.iconUrl.startsWith('/') ? mission.iconUrl.slice(1) : mission.iconUrl}
                             alt="icône de mission"
                             className="w-full h-full object-cover"
                             onError={(e) => {
