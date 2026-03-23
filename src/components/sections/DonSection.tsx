@@ -308,7 +308,7 @@ const DonSection: React.FC = () => {
   const montantsSuggeres = [10000, 25000, 50000, 100000, 250000];
 
   const modesPaiement = [
-    { value: 'ORANGE_MONEY', label: t.paymentMethods.orange, icon: FaMobile, color: 'bg-orange-500' },
+    { value: 'MOBILE_MONEY', label: t.paymentMethods.orange, icon: FaMobile, color: 'bg-orange-500' },
     { value: 'VIREMENT', label: t.paymentMethods.transfer, icon: FaUniversity, color: 'bg-water-blue' },
     { value: 'CHEQUE', label: t.paymentMethods.check, icon: FaMoneyBill, color: 'bg-earth-brown' },
     { value: 'ESPECES', label: t.paymentMethods.cash, icon: FaMoneyBillWave, color: 'bg-sun-gold' }

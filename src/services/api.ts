@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://web-production-03b53.up.railway.app/api',  // URL de ton backend Railway
+  baseURL: 'https://backvina.onrender.com/api',  // URL de render
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

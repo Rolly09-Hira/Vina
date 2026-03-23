@@ -301,7 +301,7 @@ export default function Footer() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="text-2xl font-bold text-warm-white">VINA</span>
+              <span className="text-2xl font-bold text-warm-white">VINA Madagascar</span>
             </div>
             <p className="text-sun-gold text-sm leading-relaxed">
               Vision for Integrated and Nature-based Actions

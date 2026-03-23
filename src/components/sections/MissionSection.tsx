@@ -1,468 +1,919 @@
-// src/components/sections/MissionSection.tsx
-import { useState, useEffect } from 'react';
+// src/components/sections/DonSection.tsx
+import React, { useState } from 'react';
 import { 
-  FaSeedling,              // Agriculture durable
-  FaTint,                  // Eau potable
-  FaTree,                  // Environnement/Forêt
-  FaGraduationCap,         // Éducation
-  FaHeartbeat,             // Santé
-  FaHandsHelping,          // Gouvernance/Participation
-  FaChartLine,             // AGR/Entrepreneuriat
-  FaUsers,                 // Jeunes/Femmes
-  FaLeaf,                  // Reboisement
-  FaSolarPanel,            // Climat/Résilience
-  FaShoppingBasket,        // Sécurité alimentaire
-  FaHandshake,             // Partenariat
-  FaGlobe,
-  FaGavel,
-  FaListUl,
-  FaUserFriends,
-  FaSpinner
+  FaHeart, 
+  FaMobile, 
+  FaUniversity, 
+  FaMoneyBill, 
+  FaCheckCircle, 
+  FaMoneyBillWave,
+  FaArrowLeft,
+  FaHome,
+  FaPhone,
+  FaEnvelope,
+  FaUser,
+  FaComment,
+  FaWhatsapp,
+  FaBuilding,
+  FaCheck,
+  FaTimes
 } from 'react-icons/fa';
-import missionService from '../../services/missionService';
-import type { Mission } from '../../services/missionService';
+import { Link } from 'react-router-dom';
+import { donService } from '../../services/donService';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-// Mapping des icônes par mot-clé dans le titre
-const getIconForMission = (titleFr: string, titleEn: string) => {
-  const text = (titleFr + ' ' + titleEn).toLowerCase();
-  if (text.includes('agriculture') || text.includes('agro') || text.includes('farming')) return <FaSeedling className="w-6 h-6" />;
-  if (text.includes('eau') || text.includes('assainissement') || text.includes('water') || text.includes('sanitation')) return <FaTint className="w-6 h-6" />;
-  if (text.includes('ressource') || text.includes('forêt') || text.includes('forest') || text.includes('resource')) return <FaTree className="w-6 h-6" />;
-  if (text.includes('éducation') || text.includes('formation') || text.includes('education') || text.includes('training')) return <FaGraduationCap className="w-6 h-6" />;
-  if (text.includes('santé') || text.includes('sante') || text.includes('health')) return <FaHeartbeat className="w-6 h-6" />;
-  if (text.includes('gouvernance') || text.includes('participation') || text.includes('governance')) return <FaHandsHelping className="w-6 h-6" />;
-  if (text.includes('revenu') || text.includes('entrepreneuriat') || text.includes('income') || text.includes('entrepreneurship')) return <FaChartLine className="w-6 h-6" />;
-  if (text.includes('jeune') || text.includes('femme') || text.includes('youth') || text.includes('woman')) return <FaUsers className="w-6 h-6" />;
-  if (text.includes('élevage') || text.includes('elevage') || text.includes('livestock')) return <FaLeaf className="w-6 h-6" />;
-  if (text.includes('climatique') || text.includes('résilience') || text.includes('climate') || text.includes('resilience')) return <FaSolarPanel className="w-6 h-6" />;
-  if (text.includes('sécurité alimentaire') || text.includes('securite') || text.includes('food security')) return <FaShoppingBasket className="w-6 h-6" />;
-  if (text.includes('partenariat') || text.includes('partnership')) return <FaHandshake className="w-6 h-6" />;
-  return <FaGlobe className="w-6 h-6" />; // Icône par défaut
-};
-
-// Déterminer la catégorie basée sur le titre
-const getCategoryForMission = (titleFr: string, titleEn: string): 'environnement' | 'social' | 'economique' | 'gouvernance' => {
-  const text = (titleFr + ' ' + titleEn).toLowerCase();
-  if (text.includes('environnement') || text.includes('environment') || 
-      text.includes('climat') || text.includes('climate') || 
-      text.includes('ressource') || text.includes('resource') || 
-      text.includes('agriculture') || text.includes('farming') || 
-      text.includes('élevage') || text.includes('livestock') ||
-      text.includes('forêt') || text.includes('forest')) {
-    return 'environnement';
-  }
-  if (text.includes('social') || text.includes('santé') || text.includes('health') || 
-      text.includes('éducation') || text.includes('education') || 
-      text.includes('eau') || text.includes('water')) {
-    return 'social';
-  }
-  if (text.includes('revenu') || text.includes('income') || 
-      text.includes('entrepreneuriat') || text.includes('entrepreneurship') || 
-      text.includes('économique') || text.includes('economic') || 
-      text.includes('agr')) {
-    return 'economique';
-  }
-  if (text.includes('gouvernance') || text.includes('governance') || 
-      text.includes('partenariat') || text.includes('partnership')) {
-    return 'gouvernance';
-  }
-  return 'social';
-};
-
-// Couleurs par catégorie adaptées à la charte VINA
-const categoryColors = {
-  environnement: {
-    bg: 'bg-olive-nature',
-    light: 'bg-olive-nature/10',
-    text: 'text-olive-nature',
-    gradient: 'from-olive-nature to-forest-deep',
-    icon: 'bg-olive-nature',
-    border: 'border-olive-nature/30'
-  },
-  social: {
-    bg: 'bg-water-blue',
-    light: 'bg-water-blue/10',
-    text: 'text-water-blue',
-    gradient: 'from-water-blue to-sky-soft',
-    icon: 'bg-water-blue',
-    border: 'border-water-blue/30'
-  },
-  economique: {
-    bg: 'bg-sun-gold',
-    light: 'bg-sun-gold/10',
-    text: 'text-sun-gold',
-    gradient: 'from-sun-gold to-soft-sun',
-    icon: 'bg-sun-gold',
-    border: 'border-sun-gold/30'
-  },
-  gouvernance: {
-    bg: 'bg-earth-brown',
-    light: 'bg-earth-brown/10',
-    text: 'text-earth-brown',
-    gradient: 'from-earth-brown to-forest-deep',
-    icon: 'bg-earth-brown',
-    border: 'border-earth-brown/30'
-  }
-};
-
-// Texte multilingue pour l'interface
-const content = {
+// Interface pour le contenu multilingue
+interface Content {
   fr: {
-    badge: 'NOS MISSIONS',
-    title: 'Ce que nous faisons',
-    subtitle: 'Une approche multisectorielle pour un développement intégré et durable',
-    filters: {
-      all: 'Toutes',
-      environnement: 'Environnement',
-      social: 'Social',
-      economique: 'Économique',
-      gouvernance: 'Gouvernance'
+    badge: string;
+    title: string;
+    subtitle: string;
+    form: {
+      name: string;
+      namePlaceholder: string;
+      nameHint: string;
+      email: string;
+      emailValid: string;
+      emailInvalid: string;
+      phone: string;
+      phoneFormat: string;
+      amount: string;
+      otherAmount: string;
+      paymentMethod: string;
+      message: string;
+      messagePlaceholder: string;
+      submit: string;
+      submitting: string;
+      required: string;
+      privacy: string;
+    };
+    success: {
+      title: string;
+      message: string;
+      steps: {
+        title: string;
+        items: {
+          call: string;
+          advice: string;
+          receipt: string;
+        };
+      };
+      buttons: {
+        home: string;
+        new: string;
+      };
+      confirmation: string;
+      social: string;
+    };
+    paymentMethods: {
+      orange: string;
+      transfer: string;
+      check: string;
+      cash: string;
+    };
+    cards: {
+      transparent: {
+        title: string;
+        description: string;
+      };
+      support: {
+        title: string;
+        description: string;
+      };
+      impact: {
+        title: string;
+        description: string;
+      };
+    };
+  };
+  en: {
+    badge: string;
+    title: string;
+    subtitle: string;
+    form: {
+      name: string;
+      namePlaceholder: string;
+      nameHint: string;
+      email: string;
+      emailValid: string;
+      emailInvalid: string;
+      phone: string;
+      phoneFormat: string;
+      amount: string;
+      otherAmount: string;
+      paymentMethod: string;
+      message: string;
+      messagePlaceholder: string;
+      submit: string;
+      submitting: string;
+      required: string;
+      privacy: string;
+    };
+    success: {
+      title: string;
+      message: string;
+      steps: {
+        title: string;
+        items: {
+          call: string;
+          advice: string;
+          receipt: string;
+        };
+      };
+      buttons: {
+        home: string;
+        new: string;
+      };
+      confirmation: string;
+      social: string;
+    };
+    paymentMethods: {
+      orange: string;
+      transfer: string;
+      check: string;
+      cash: string;
+    };
+    cards: {
+      transparent: {
+        title: string;
+        description: string;
+      };
+      support: {
+        title: string;
+        description: string;
+      };
+      impact: {
+        title: string;
+        description: string;
+      };
+    };
+  };
+}
+
+// Contenu multilingue
+const content: Content = {
+  fr: {
+    badge: 'Soutenez nos actions',
+    title: 'Faire un don à VINA',
+    subtitle: 'Votre générosité nous permet de continuer nos actions de développement durable auprès des communautés rurales. Chaque don, quel que soit son montant, fait la différence.',
+    form: {
+      name: 'Nom complet / Raison sociale',
+      namePlaceholder: 'Votre nom ou celui de votre entreprise/organisation',
+      nameHint: 'Indiquez votre nom, le nom de votre entreprise ou organisation',
+      email: 'Email',
+      emailValid: 'Email valide',
+      emailInvalid: 'Email invalide',
+      phone: 'Téléphone',
+      phoneFormat: 'Format international accepté : +261341234567, 0341234567',
+      amount: 'Montant du don (Ariary)',
+      otherAmount: 'Autre montant',
+      paymentMethod: 'Mode de paiement souhaité',
+      message: 'Message (optionnel)',
+      messagePlaceholder: 'Un message à nous transmettre ?',
+      submit: 'Envoyer ma demande de don',
+      submitting: 'Traitement en cours...',
+      required: 'Champs obligatoires',
+      privacy: 'En soumettant ce formulaire, vous acceptez d\'être contacté par notre équipe. Vos informations sont confidentielles et ne seront pas partagées avec des tiers.'
     },
-    clickToExpand: 'Cliquez pour en savoir plus',
-    clickToCollapse: '👆 Cliquez pour réduire',
-    loading: 'Chargement des missions...',
-    noMissions: 'Aucune mission dans cette catégorie',
-    viewMore: 'Voir plus de missions',
-    stats: {
-      missions: 'Missions actives',
-      regions: "Régions d'intervention",
-      beneficiaries: 'Bénéficiaires',
-      partners: 'Partenaires'
+    success: {
+      title: 'Misaotra indrindra ! 🙏',
+      message: 'Votre demande a bien été enregistrée. Un membre de notre équipe vous contactera dans les plus brefs délais pour finaliser votre don.',
+      steps: {
+        title: 'Prochaines étapes',
+        items: {
+          call: 'Un appel pour confirmer votre don',
+          advice: 'Le mode de paiement le plus adapté',
+          receipt: 'Pour votre déclaration'
+        }
+      },
+      buttons: {
+        home: 'Accueil',
+        new: 'Nouvelle demande'
+      },
+      confirmation: 'Un email de confirmation vous a été envoyé.',
+      social: 'Suivez-nous sur les réseaux sociaux pour ne rien manquer de nos actions !'
+    },
+    paymentMethods: {
+      orange: 'Mobile Money',
+      transfer: 'Virement bancaire',
+      check: 'Chèque',
+      cash: 'Espèces'
+    },
+    cards: {
+      transparent: {
+        title: '100% transparent',
+        description: 'Nous vous fournissons un reçu officiel et un suivi de l\'utilisation de votre don.'
+      },
+      support: {
+        title: 'Accompagnement personnalisé',
+        description: 'Notre équipe vous guide pour choisir le mode de paiement le plus adapté.'
+      },
+      impact: {
+        title: 'Impact durable',
+        description: 'Votre don contribue directement à nos projets de développement dans les communautés rurales.'
+      }
     }
   },
   en: {
-    badge: 'OUR MISSIONS',
-    title: 'What we do',
-    subtitle: 'A multisectoral approach for integrated and sustainable development',
-    filters: {
-      all: 'All',
-      environnement: 'Environment',
-      social: 'Social',
-      economique: 'Economic',
-      gouvernance: 'Governance'
+    badge: 'Support our actions',
+    title: 'Make a donation to VINA',
+    subtitle: 'Your generosity allows us to continue our sustainable development actions with rural communities. Every donation, regardless of amount, makes a difference.',
+    form: {
+      name: 'Full name / Company name',
+      namePlaceholder: 'Your name or your company/organization name',
+      nameHint: 'Enter your name, your company or organization name',
+      email: 'Email',
+      emailValid: 'Valid email',
+      emailInvalid: 'Invalid email',
+      phone: 'Phone',
+      phoneFormat: 'International format accepted: +261341234567, 0341234567',
+      amount: 'Donation amount (Ariary)',
+      otherAmount: 'Other amount',
+      paymentMethod: 'Preferred payment method',
+      message: 'Message (optional)',
+      messagePlaceholder: 'A message for us?',
+      submit: 'Send my donation request',
+      submitting: 'Processing...',
+      required: 'Required fields',
+      privacy: 'By submitting this form, you agree to be contacted by our team. Your information is confidential and will not be shared with third parties.'
     },
-    clickToExpand: 'Click to learn more',
-    clickToCollapse: '👆 Click to collapse',
-    loading: 'Loading missions...',
-    noMissions: 'No missions in this category',
-    viewMore: 'View more missions',
-    stats: {
-      missions: 'Active missions',
-      regions: 'Intervention regions',
-      beneficiaries: 'Beneficiaries',
-      partners: 'Partners'
+    success: {
+      title: 'Thank you very much! 🙏',
+      message: 'Your request has been registered. A member of our team will contact you as soon as possible to finalize your donation.',
+      steps: {
+        title: 'Next steps',
+        items: {
+          call: 'A call to confirm your donation',
+          advice: 'The most suitable payment method',
+          receipt: 'For your tax declaration'
+        }
+      },
+      buttons: {
+        home: 'Home',
+        new: 'New request'
+      },
+      confirmation: 'A confirmation email has been sent to you.',
+      social: 'Follow us on social media to not miss any of our actions!'
+    },
+    paymentMethods: {
+      orange: 'Mobile Money',
+      transfer: 'Bank transfer',
+      check: 'Check',
+      cash: 'Cash'
+    },
+    cards: {
+      transparent: {
+        title: '100% transparent',
+        description: 'We provide you with an official receipt and follow-up on the use of your donation.'
+      },
+      support: {
+        title: 'Personalized support',
+        description: 'Our team guides you to choose the most suitable payment method.'
+      },
+      impact: {
+        title: 'Sustainable impact',
+        description: 'Your donation directly contributes to our development projects in rural communities.'
+      }
     }
   }
 };
 
-export default function MissionSection() {
+const DonSection: React.FC = () => {
   const { language } = useLanguage();
   const t = content[language];
   
-  const [missions, setMissions] = useState<Mission[]>([]);
-  const [filter, setFilter] = useState('all');
-  const [visibleMissions, setVisibleMissions] = useState(8);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    total: 0,
-    regions: 0,
-    beneficiaires: '0+',
-    partenaires: 0
+  const [formData, setFormData] = useState({
+    nomComplet: '',
+    email: '',
+    telephone: '',
+    telephoneRaw: '',
+    montant: '',
+    montantType: 'FIXE',
+    modePaiementSouhaite: '',
+    message: ''
   });
 
-  // Charger les missions depuis l'API
-  useEffect(() => {
-    const fetchMissions = async () => {
-      try {
-        setLoading(true);
-        const data = await missionService.getMissionsActives();
-        // Trier par ordre d'affichage
-        const sortedData = data.sort((a, b) => (a.ordreAffichage || 0) - (b.ordreAffichage || 0));
-        setMissions(sortedData);
-        setStats(prev => ({ ...prev, total: sortedData.length }));
-      } catch (error) {
-        console.error('Erreur chargement missions:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMissions();
-  }, []);
-
-  // Filtrer les missions
-  const filteredMissions = missions.filter(mission => {
-    if (filter === 'all') return true;
-    return getCategoryForMission(mission.titreFr, mission.titreEn) === filter;
+  const [emailValidation, setEmailValidation] = useState({
+    isValid: false,
+    isDirty: false,
+    message: ''
   });
 
-  const toggleExpand = (id: number) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
+  const [errors, setErrors] = useState<{
+    nomComplet?: string;
+    email?: string;
+    telephone?: string;
+    montant?: string;
+    modePaiementSouhaite?: string;
+  }>({});
 
-  // Mapping des catégories pour les filtres avec les nouvelles couleurs
-  const categories = [
-    { id: 'all', label: t.filters.all, icon: <FaListUl className="w-4 h-4 mr-2" />, color: 'bg-olive-nature' },
-    { id: 'environnement', label: t.filters.environnement, icon: <FaGlobe className="w-4 h-4 mr-2" />, color: categoryColors.environnement.bg },
-    { id: 'social', label: t.filters.social, icon: <FaUsers className="w-4 h-4 mr-2" />, color: categoryColors.social.bg },
-    { id: 'economique', label: t.filters.economique, icon: <FaChartLine className="w-4 h-4 mr-2" />, color: categoryColors.economique.bg },
-    { id: 'gouvernance', label: t.filters.gouvernance, icon: <FaGavel className="w-4 h-4 mr-2" />, color: categoryColors.gouvernance.bg }
+  const [montantPersonnalise, setMontantPersonnalise] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState('');
+
+  // Montants suggérés en Ariary
+  const montantsSuggeres = [10000, 25000, 50000, 100000, 250000];
+
+  const modesPaiement = [
+    { value: 'MOBILE_MONEY', label: t.paymentMethods.orange, icon: FaMobile, color: 'bg-orange-500' },
+    { value: 'VIREMENT', label: t.paymentMethods.transfer, icon: FaUniversity, color: 'bg-water-blue' },
+    { value: 'CHEQUE', label: t.paymentMethods.check, icon: FaMoneyBill, color: 'bg-earth-brown' },
+    { value: 'ESPECES', label: t.paymentMethods.cash, icon: FaMoneyBillWave, color: 'bg-sun-gold' }
   ];
 
-  if (loading) {
+  // Fonction de validation d'email
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Fonction de validation complète du formulaire
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+    
+    if (!formData.nomComplet.trim()) {
+      newErrors.nomComplet = 'Le nom complet est requis';
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'L\'email est requis';
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Format d\'email invalide';
+    }
+    
+    if (!formData.telephone.trim()) {
+      newErrors.telephone = 'Le téléphone est requis';
+    } else {
+      const cleaned = formData.telephone.replace(/[^\d+]/g, '');
+      if (cleaned.length < 9) {
+        newErrors.telephone = 'Numéro invalide (minimum 9 chiffres)';
+      }
+    }
+    
+    if (!montantPersonnalise && !formData.montant && formData.montantType === 'FIXE') {
+      newErrors.montant = 'Veuillez sélectionner un montant';
+    } else if (montantPersonnalise && (!formData.montant || parseFloat(formData.montant) < 100)) {
+      newErrors.montant = 'Le montant minimum est de 100 Ar';
+    }
+    
+    if (!formData.modePaiementSouhaite) {
+      newErrors.modePaiementSouhaite = 'Veuillez choisir un mode de paiement';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const email = e.target.value;
+    setFormData(prev => ({ ...prev, email }));
+    setErrors(prev => ({ ...prev, email: undefined }));
+    
+    if (email) {
+      const isValid = validateEmail(email);
+      setEmailValidation({
+        isValid,
+        isDirty: true,
+        message: isValid ? t.form.emailValid : t.form.emailInvalid
+      });
+    } else {
+      setEmailValidation({
+        isValid: false,
+        isDirty: false,
+        message: ''
+      });
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: undefined }));
+  };
+
+  const handleMontantSelect = (montant: number) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      montant: montant.toString(),
+      montantType: 'FIXE'
+    }));
+    setMontantPersonnalise(false);
+    setErrors(prev => ({ ...prev, montant: undefined }));
+  };
+
+  const handleMontantPersonnalise = () => {
+    setMontantPersonnalise(true);
+    setFormData(prev => ({ 
+      ...prev, 
+      montant: '',
+      montantType: 'LIBRE'
+    }));
+    setErrors(prev => ({ ...prev, montant: undefined }));
+  };
+
+  const formatTelephone = (value: string): string => {
+    const cleaned = value.replace(/[^\d+]/g, '');
+    
+    if (cleaned.startsWith('261') || cleaned.startsWith('+261')) {
+      const numbers = cleaned.replace(/\D/g, '');
+      if (numbers.length === 12) {
+        const indicatif = numbers.slice(0, 3);
+        const operateur = numbers.slice(3, 5);
+        const partie1 = numbers.slice(5, 8);
+        const partie2 = numbers.slice(8, 10);
+        const partie3 = numbers.slice(10, 12);
+        return `+${indicatif} ${operateur} ${partie1} ${partie2} ${partie3}`;
+      }
+    }
+    
+    return cleaned;
+  };
+
+  const handleTelephoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const formatted = formatTelephone(rawValue);
+    const telephonePropre = rawValue.replace(/[^\d+]/g, '');
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      telephone: formatted,
+      telephoneRaw: telephonePropre
+    }));
+    setErrors(prev => ({ ...prev, telephone: undefined }));
+  };
+
+  const handleModePaiementSelect = (value: string) => {
+    setFormData(prev => ({ ...prev, modePaiementSouhaite: value }));
+    setErrors(prev => ({ ...prev, modePaiementSouhaite: undefined }));
+  };
+
+  const formatAriary = (montant: number) => {
+    return new Intl.NumberFormat('fr-MG', {
+      style: 'currency',
+      currency: 'MGA',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(montant).replace('MGA', 'Ar');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      const firstError = document.querySelector('.border-red-500');
+      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const utmData = {
+        utmSource: urlParams.get('utm_source') || undefined,
+        utmMedium: urlParams.get('utm_medium') || undefined,
+        utmCampaign: urlParams.get('utm_campaign') || undefined
+      };
+
+      const donData = {
+        nomComplet: formData.nomComplet,
+        email: formData.email,
+        telephone: formData.telephoneRaw || formData.telephone.replace(/\s/g, ''),
+        montant: formData.montant ? parseFloat(formData.montant) : undefined,
+        montantType: formData.montantType,
+        modePaiementSouhaite: formData.modePaiementSouhaite || undefined,
+        message: formData.message || undefined,
+        ...utmData
+      };
+
+      await donService.createIntention(donData);
+      setIsSuccess(true);
+      
+      setFormData({
+        nomComplet: '',
+        email: '',
+        telephone: '',
+        telephoneRaw: '',
+        montant: '',
+        montantType: 'FIXE',
+        modePaiementSouhaite: '',
+        message: ''
+      });
+      setMontantPersonnalise(false);
+      setEmailValidation({
+        isValid: false,
+        isDirty: false,
+        message: ''
+      });
+      setErrors({});
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || 'Une erreur est survenue. Veuillez réessayer.';
+      setError(errorMsg);
+      console.error('Erreur soumission don:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    setIsSuccess(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (isSuccess) {
     return (
-      <section className="py-20 bg-ultra-light">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <FaSpinner className="w-12 h-12 text-sun-gold animate-spin mb-4" />
-            <p className="text-text-secondary">{t.loading}</p>
+      <div className="min-h-screen bg-gradient-to-b from-ultra-light to-warm-white py-20 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-border-light">
+            <div className="h-2 bg-gradient-to-r from-sun-gold via-olive-nature to-water-blue"></div>
+            
+            <div className="p-8 md:p-12 text-center">
+              <div className="relative mb-8">
+                <div className="w-28 h-28 bg-soft-sun/20 rounded-full mx-auto animate-pulse"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-24 h-24 bg-gradient-to-br from-sun-gold to-soft-sun rounded-full flex items-center justify-center shadow-xl animate-bounce-slow">
+                    <FaCheckCircle className="w-12 h-12 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <h2 className="text-3xl md:text-4xl font-bold text-forest-deep mb-4">
+                {t.success.title}
+              </h2>
+              
+              <p className="text-text-secondary text-lg mb-8">
+                {t.success.message}
+              </p>
+
+              <div className="bg-ultra-light border border-border-light rounded-xl p-6 mb-8 text-left">
+                <h3 className="font-bold text-forest-deep mb-4 flex items-center gap-2">
+                  <FaHeart className="text-sun-gold" />
+                  {t.success.steps.title}
+                </h3>
+                <ul className="space-y-3 text-text-secondary">
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-sun-gold/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="w-2 h-2 bg-sun-gold rounded-full"></span>
+                    </span>
+                    <span><strong className="text-forest-deep">{t.success.steps.items.call.split(' ')[0]}</strong> {t.success.steps.items.call.substring(t.success.steps.items.call.indexOf(' ') + 1)}</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-water-blue/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="w-2 h-2 bg-water-blue rounded-full"></span>
+                    </span>
+                    <span>{t.success.steps.items.advice}</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-olive-nature/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="w-2 h-2 bg-olive-nature rounded-full"></span>
+                    </span>
+                    <span>{t.success.steps.items.receipt}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  to="/"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white font-semibold rounded-lg hover:from-forest-deep hover:to-premium-dark transition-all transform hover:scale-105 shadow-lg"
+                >
+                  <FaHome />
+                  {t.success.buttons.home}
+                </Link>
+                <button
+                  onClick={handleReset}
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white text-forest-deep font-semibold rounded-lg hover:bg-ultra-light transition-all border-2 border-border-light"
+                >
+                  <FaArrowLeft />
+                  {t.success.buttons.new}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 text-center text-text-secondary text-sm">
+            <p>{t.success.confirmation}</p>
+            <p className="mt-2">{t.success.social}</p>
           </div>
         </div>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="py-20 bg-ultra-light">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* En-tête */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center bg-sun-gold/10 px-4 py-2 rounded-full border border-sun-gold/20 mb-6">
-            <span className="w-2 h-2 bg-sun-gold rounded-full mr-2 animate-pulse" />
-            <span className="text-forest-deep text-sm font-medium tracking-wider">
-              {t.badge}
-            </span>
-          </div>
-          
-          <h2 className="text-4xl md:text-5xl font-bold text-forest-deep mb-6">
-            {t.title}
-          </h2>
-          
-          <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-            {t.subtitle}
-          </p>
-
-          {/* Filtres */}
-          <div className="flex flex-wrap justify-center gap-3 mt-10">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setFilter(cat.id)}
-                className={`
-                  inline-flex items-center px-6 py-2.5 rounded-full font-medium transition-all duration-300
-                  ${filter === cat.id 
-                    ? `${cat.color} text-white shadow-lg scale-105` 
-                    : 'bg-white text-text-secondary hover:bg-sun-gold/10 border border-border-light'
-                  }
-                `}
-              >
-                {cat.icon}
-                {cat.label}
-              </button>
-            ))}
+    <section className="bg-gradient-to-b from-olive-nature to-forest-deep py-12 px-4 relative">
+      <div className="absolute inset-0 bg-premium-dark/30"></div>
+      
+      <div className="max-w-4xl mx-auto pt-8 md:pt-12 relative z-10">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center bg-warm-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-warm-white/30 shadow-lg">
+            <FaHeart className="text-sun-gold mr-2 animate-pulse" />
+            <span className="text-warm-white font-medium">{t.badge}</span>
           </div>
         </div>
 
-        {/* Grille des missions avec centrage */}
-        {filteredMissions.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-text-secondary text-lg">{t.noMissions}</p>
-          </div>
-        ) : (
-          <div className="flex flex-wrap justify-center gap-8">
-            {filteredMissions.slice(0, visibleMissions).map((mission) => {
-              const category = getCategoryForMission(mission.titreFr, mission.titreEn);
-              const colors = categoryColors[category];
-              const icon = getIconForMission(mission.titreFr, mission.titreEn);
-              const isExpanded = expandedId === mission.id;
-              
-              return (
-                <div
-                  key={mission.id}
-                  onClick={() => toggleExpand(mission.id)}
-                  className={`
-                    group bg-white rounded-3xl shadow-lg hover:shadow-2xl 
-                    transition-all duration-500 cursor-pointer
-                    flex flex-col overflow-hidden
-                    w-full sm:w-[calc(50%-2rem)] lg:w-[calc(25%-2rem)] max-w-sm
-                    ${isExpanded ? 'scale-105 shadow-2xl ring-2 ring-sun-gold ring-offset-2' : 'hover:-translate-y-2'}
-                  `}
-                >
-                  {/* Image container */}
-                  <div className="pt-8 px-8 flex justify-center">
-                    <div className="relative">
-                      <div className={`
-                        w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl
-                        transition-all duration-500
-                        ${isExpanded ? 'scale-110' : ''}
-                      `}>
-                        {mission.imageUrl ? (
-                          <img
-                            src={mission.imageUrl.startsWith('/') ? mission.imageUrl.slice(1) : mission.imageUrl}
-                            alt={language === 'fr' ? mission.titreFr : mission.titreEn}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              console.error('Erreur chargement image:', mission.imageUrl);
-                              const target = e.currentTarget;
-                              target.style.display = 'none';
-                              const parent = target.parentElement;
-                              if (parent) {
-                                const fallbackDiv = document.createElement('div');
-                                fallbackDiv.className = `w-full h-full bg-gradient-to-br ${colors.gradient} flex items-center justify-center`;
-                                fallbackDiv.innerHTML = `<span class="text-white text-3xl font-bold">${mission.titreFr.charAt(0)}</span>`;
-                                parent.appendChild(fallbackDiv);
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className={`w-full h-full bg-gradient-to-br ${colors.gradient} flex items-center justify-center`}>
-                            <span className="text-white text-3xl font-bold">
-                              {mission.titreFr.charAt(0)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Icône flottante */}
-                      <div className={`
-                        absolute -bottom-3 -right-3 w-14 h-14 rounded-full overflow-hidden
-                        border-4 border-white shadow-xl
-                        ${colors.icon}
-                        transition-all duration-500
-                        ${isExpanded ? 'scale-110 rotate-12' : 'group-hover:scale-110 group-hover:rotate-6'}
-                      `}>
-                        {mission.iconUrl ? (
-                          <img 
-                            src={mission.iconUrl.startsWith('/') ? mission.iconUrl.slice(1) : mission.iconUrl}
-                            alt="icône de mission"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              console.error('Erreur chargement icône:', mission.iconUrl);
-                              e.currentTarget.style.display = 'none';
-                              const parent = e.currentTarget.parentElement;
-                              if (parent) {
-                                parent.classList.add('flex', 'items-center', 'justify-center', colors.icon);
-                                const iconContainer = document.createElement('div');
-                                iconContainer.className = 'text-white text-2xl';
-                                iconContainer.innerHTML = '✨';
-                                parent.appendChild(iconContainer);
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className={`w-full h-full flex items-center justify-center text-white text-2xl bg-gradient-to-br ${colors.gradient}`}>
-                            {icon}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-bold text-warm-white mb-4 drop-shadow-lg">
+            {t.title}
+          </h1>
+          <p className="text-warm-white/90 text-lg max-w-2xl mx-auto drop-shadow">
+            {t.subtitle}
+          </p>
+        </div>
 
-                  {/* Contenu */}
-                  <div className="p-6 pt-4 text-center flex-grow flex flex-col">
-                    <div className="mb-2">
-                      <span className={`inline-flex items-center px-3 py-1 ${colors.light} rounded-full text-xs font-semibold ${colors.text} border ${colors.border}`}>
-                        {category === 'environnement' && <><FaLeaf className="w-3 h-3 mr-1" /> {t.filters.environnement}</>}
-                        {category === 'social' && <><FaUserFriends className="w-3 h-3 mr-1" /> {t.filters.social}</>}
-                        {category === 'economique' && <><FaChartLine className="w-3 h-3 mr-1" /> {t.filters.economique}</>}
-                        {category === 'gouvernance' && <><FaGavel className="w-3 h-3 mr-1" /> {t.filters.gouvernance}</>}
-                      </span>
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-border-light">
+          <div className="h-2 bg-gradient-to-r from-sun-gold via-olive-nature to-water-blue"></div>
+          
+          <div className="p-8 md:p-12">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+                <FaTimes className="text-red-500" />
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Champ Nom complet / Entreprise */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-forest-deep mb-2">
+                    {t.form.name} <span className="text-sun-gold">*</span>
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                      <FaUser className="text-text-secondary group-focus-within:text-sun-gold transition-colors" />
+                      <span className="text-text-secondary/30">|</span>
+                      <FaBuilding className="text-text-secondary group-focus-within:text-sun-gold transition-colors" />
                     </div>
-                    
-                    <h3 className={`
-                      text-xl font-bold text-forest-deep mb-3 
-                      transition-all duration-300
-                      ${isExpanded ? `text-${colors.text}` : 'group-hover:text-olive-nature'}
-                    `}>
-                      {language === 'fr' ? mission.titreFr : mission.titreEn}
-                    </h3>
-                    
-                    {/* Description */}
-                    <div className={`
-                      overflow-hidden transition-all duration-500 ease-in-out
-                      ${isExpanded ? 'max-h-40 opacity-100 mb-3' : 'max-h-0 opacity-0'}
-                    `}>
-                      <p className="text-text-secondary text-sm leading-relaxed">
-                        {language === 'fr' ? mission.descriptionFr : mission.descriptionEn}
-                      </p>
-                      
-                      {isExpanded && (
-                        <>
-                          {language === 'fr' && mission.sloganFr && (
-                            <p className="mt-2 text-xs italic text-water-blue">
-                              "{mission.sloganFr}"
-                            </p>
-                          )}
-                          {language === 'en' && mission.sloganEn && (
-                            <p className="mt-2 text-xs italic text-water-blue">
-                              "{mission.sloganEn}"
-                            </p>
-                          )}
-                        </>
-                      )}
-                      
-                      {isExpanded && (
-                        <div className="mt-3 text-xs text-water-blue font-medium">
-                          {t.clickToCollapse}
-                        </div>
-                      )}
-                    </div>
-                    
-                    {!isExpanded && (
-                      <div className="mt-2 text-xs text-text-secondary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span>{t.clickToExpand}</span>
-                        <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                    <input
+                      type="text"
+                      name="nomComplet"
+                      value={formData.nomComplet}
+                      onChange={handleInputChange}
+                      onBlur={validateForm}
+                      required
+                      className={`w-full pl-16 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold transition-all bg-ultra-light/30 ${
+                        errors.nomComplet ? 'border-red-500 focus:ring-red-500' : 'border-border-light'
+                      }`}
+                      placeholder={t.form.namePlaceholder}
+                    />
+                  </div>
+                  {errors.nomComplet && (
+                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                      <FaTimes className="w-3 h-3" />
+                      {errors.nomComplet}
+                    </p>
+                  )}
+                  <p className="text-xs text-text-secondary mt-1 flex items-center gap-1">
+                    <FaCheck className="text-sun-gold w-3 h-3" />
+                    {t.form.nameHint}
+                  </p>
+                </div>
+
+                {/* Email avec validation */}
+                <div>
+                  <label className="block text-sm font-medium text-forest-deep mb-2">
+                    {t.form.email} <span className="text-sun-gold">*</span>
+                  </label>
+                  <div className="relative group">
+                    <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary group-focus-within:text-sun-gold transition-colors" />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleEmailChange}
+                      onBlur={validateForm}
+                      required
+                      className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold transition-all bg-ultra-light/30 ${
+                        errors.email
+                          ? 'border-red-500 focus:ring-red-500'
+                          : emailValidation.isDirty && emailValidation.isValid
+                          ? 'border-green-500'
+                          : 'border-border-light'
+                      }`}
+                      placeholder="contact@exemple.com"
+                    />
+                    {emailValidation.isDirty && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        {emailValidation.isValid ? (
+                          <FaCheck className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <FaTimes className="w-5 h-5 text-red-500" />
+                        )}
                       </div>
                     )}
                   </div>
+                  {errors.email ? (
+                    <p className="text-xs text-red-500 mt-1">{errors.email}</p>
+                  ) : emailValidation.isDirty && (
+                    <p className={`text-xs mt-1 ${emailValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {emailValidation.message}
+                    </p>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        )}
 
-        {/* Bouton Voir plus */}
-        {visibleMissions < filteredMissions.length && (
-          <div className="text-center mt-12">
-            <button
-              onClick={() => setVisibleMissions(visibleMissions + 4)}
-              className="group relative px-8 py-4 bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white font-semibold rounded-full overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105"
-            >
-              <span className="relative z-10 flex items-center space-x-2">
-                <span>{t.viewMore}</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-forest-deep to-premium-dark opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full" />
-            </button>
-          </div>
-        )}
+                <div>
+                  <label className="block text-sm font-medium text-forest-deep mb-2">
+                    {t.form.phone} <span className="text-sun-gold">*</span>
+                  </label>
+                  <div className="relative group">
+                    <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary group-focus-within:text-sun-gold transition-colors" />
+                    <input
+                      type="tel"
+                      name="telephone"
+                      value={formData.telephone}
+                      onChange={handleTelephoneChange}
+                      onBlur={validateForm}
+                      required
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold transition-all bg-ultra-light/30 ${
+                        errors.telephone ? 'border-red-500 focus:ring-red-500' : 'border-border-light'
+                      }`}
+                      placeholder="+261 34 12 345 67"
+                    />
+                  </div>
+                  {errors.telephone && (
+                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                      <FaTimes className="w-3 h-3" />
+                      {errors.telephone}
+                    </p>
+                  )}
+                  <p className="text-xs text-text-secondary mt-2 flex items-center gap-2">
+                    <FaWhatsapp className="text-water-blue" />
+                    {t.form.phoneFormat}
+                  </p>
+                </div>
+              </div>
 
-        {/* Statistiques */}
-        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 pt-12 border-t border-border-light">
-          <div className="text-center">
-            <div className="text-4xl font-bold text-olive-nature">{stats.total}</div>
-            <div className="text-sm text-text-secondary mt-2">{t.stats.missions}</div>
+              <div>
+                <label className="block text-sm font-medium text-forest-deep mb-4">
+                  {t.form.amount} <span className="text-sun-gold">*</span>
+                </label>
+                
+                <div className="flex flex-wrap gap-3 mb-4">
+                  {montantsSuggeres.map((montant) => (
+                    <button
+                      key={montant}
+                      type="button"
+                      onClick={() => handleMontantSelect(montant)}
+                      className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                        formData.montant === montant.toString() && !montantPersonnalise
+                          ? 'bg-gradient-to-r from-sun-gold to-soft-sun text-forest-deep shadow-lg scale-105'
+                          : 'bg-ultra-light text-text-secondary hover:bg-light-moss/20 border border-border-light'
+                      }`}
+                    >
+                      {formatAriary(montant)}
+                    </button>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={handleMontantPersonnalise}
+                    className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                      montantPersonnalise
+                        ? 'bg-gradient-to-r from-sun-gold to-soft-sun text-forest-deep shadow-lg scale-105'
+                        : 'bg-ultra-light text-text-secondary hover:bg-light-moss/20 border border-border-light'
+                    }`}
+                  >
+                    {t.form.otherAmount}
+                  </button>
+                </div>
+
+                {montantPersonnalise && (
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="montant"
+                      value={formData.montant}
+                      onChange={handleInputChange}
+                      onBlur={validateForm}
+                      placeholder={t.form.otherAmount}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold transition-all bg-ultra-light/30 ${
+                        errors.montant ? 'border-red-500 focus:ring-red-500' : 'border-border-light'
+                      }`}
+                      min="100"
+                    />
+                    <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-forest-deep font-medium">
+                      Ar
+                    </span>
+                  </div>
+                )}
+                {errors.montant && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <FaTimes className="w-3 h-3" />
+                    {errors.montant}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-forest-deep mb-4">
+                  {t.form.paymentMethod} <span className="text-sun-gold">*</span>
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {modesPaiement.map((mode) => {
+                    const Icon = mode.icon;
+                    return (
+                      <button
+                        key={mode.value}
+                        type="button"
+                        onClick={() => handleModePaiementSelect(mode.value)}
+                        className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all hover:scale-105 ${
+                          formData.modePaiementSouhaite === mode.value
+                            ? 'border-sun-gold bg-sun-gold/5 ring-2 ring-sun-gold/50'
+                            : errors.modePaiementSouhaite
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-border-light hover:border-light-moss bg-ultra-light/30'
+                        }`}
+                      >
+                        <Icon className={`w-8 h-8 mb-2 ${mode.color} text-white p-1.5 rounded-full`} />
+                        <span className="text-sm font-medium text-forest-deep">{mode.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {errors.modePaiementSouhaite && (
+                  <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
+                    <FaTimes className="w-3 h-3" />
+                    {errors.modePaiementSouhaite}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-forest-deep mb-2">
+                  {t.form.message}
+                </label>
+                <div className="relative group">
+                  <FaComment className="absolute left-3 top-3 text-text-secondary group-focus-within:text-sun-gold transition-colors" />
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    rows={4}
+                    className="w-full pl-10 pr-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-sun-gold focus:border-transparent transition-all bg-ultra-light/30 hover:bg-ultra-light/50"
+                    placeholder={t.form.messagePlaceholder}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-olive-nature to-forest-deep text-warm-white py-4 rounded-lg font-bold text-lg hover:from-forest-deep hover:to-premium-dark transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-warm-white border-t-transparent rounded-full animate-spin"></div>
+                    {t.form.submitting}
+                  </>
+                ) : (
+                  <>
+                    <FaHeart className="animate-pulse text-sun-gold" />
+                    {t.form.submit}
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="text-xs text-text-secondary text-center mt-6">
+              {t.form.privacy}
+            </p>
           </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-water-blue">{stats.regions}</div>
-            <div className="text-sm text-text-secondary mt-2">{t.stats.regions}</div>
+        </div>
+
+        {/* Cartes d'information */}
+        <div className="mt-12 grid md:grid-cols-3 gap-6">
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-sun-gold/10 rounded-full flex items-center justify-center mb-4">
+              <FaCheckCircle className="w-6 h-6 text-sun-gold" />
+            </div>
+            <h3 className="font-bold text-forest-deep mb-2">{t.cards.transparent.title}</h3>
+            <p className="text-sm text-text-secondary">{t.cards.transparent.description}</p>
           </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-sun-gold">{stats.beneficiaires}</div>
-            <div className="text-sm text-text-secondary mt-2">{t.stats.beneficiaries}</div>
+
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-water-blue/10 rounded-full flex items-center justify-center mb-4">
+              <FaPhone className="w-6 h-6 text-water-blue" />
+            </div>
+            <h3 className="font-bold text-forest-deep mb-2">{t.cards.support.title}</h3>
+            <p className="text-sm text-text-secondary">{t.cards.support.description}</p>
           </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-earth-brown">{stats.partenaires}+</div>
-            <div className="text-sm text-text-secondary mt-2">{t.stats.partners}</div>
+
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-border-light hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="w-12 h-12 bg-olive-nature/10 rounded-full flex items-center justify-center mb-4">
+              <FaHeart className="w-6 h-6 text-olive-nature" />
+            </div>
+            <h3 className="font-bold text-forest-deep mb-2">{t.cards.impact.title}</h3>
+            <p className="text-sm text-text-secondary">{t.cards.impact.description}</p>
           </div>
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default DonSection;

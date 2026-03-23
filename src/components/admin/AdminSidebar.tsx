@@ -226,7 +226,7 @@ export default function AdminSidebar({ isOpen, closeSidebar }: AdminSidebarProps
               />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-bold truncate" style={{ color: colors.primary }}>VINA</h2>
+              <h2 className="text-lg font-bold truncate" style={{ color: colors.primary }}>VINA Madagascar</h2>
               <p className="text-xs truncate" style={{ color: colors.textSecondary }}>
                 {user ? `${user.nom} (${user.role === 'ADMIN' ? 'Admin' : 'Éditeur'})` : 'Administration'}
               </p>

@@ -98,7 +98,7 @@ export default function Navbar() {
                   ${isScrolled ? 'text-forest-deep' : 'text-warm-white'}
                 `}
               >
-                VINA
+                VINA Madagascar
               </span>
             </Link>
           </div>

@@ -119,21 +119,34 @@ export default function MissionModal({ isOpen, onClose, onSave, mission }: Missi
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validation taille
+    // Définir les limites
     const maxSize = type === 'icon' ? 2 * 1024 * 1024 : 5 * 1024 * 1024; // 2MB pour icône, 5MB pour image
+    const maxSizeMB = type === 'icon' ? '2 Mo' : '5 Mo';
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+
+    // Vérifier la taille
     if (file.size > maxSize) {
       setErrors(prev => ({ 
         ...prev, 
-        [type]: type === 'icon' ? 'Max 2MB' : 'Max 5MB' 
+        [type]: `❌ L'image dépasse ${maxSizeMB} (${fileSizeMB} Mo). Veuillez réduire la taille du fichier.` 
       }));
+      e.target.value = '';
       return;
     }
 
+    // Vérifier le type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
     if (!allowedTypes.includes(file.type.toLowerCase())) {
-      setErrors(prev => ({ ...prev, [type]: 'Format non supporté' }));
+      setErrors(prev => ({ 
+        ...prev, 
+        [type]: `❌ Format non supporté (${file.type}). Types acceptés: JPG, PNG, GIF, WEBP, SVG` 
+      }));
+      e.target.value = '';
       return;
     }
+
+    // Tout est valide, on efface l'erreur
+    setErrors(prev => ({ ...prev, [type]: '' }));
 
     if (type === 'icon') {
       setIconFile(file);
@@ -146,7 +159,6 @@ export default function MissionModal({ isOpen, onClose, onSave, mission }: Missi
       reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
-    setErrors(prev => ({ ...prev, [type]: '' }));
   };
 
   const removeFile = (type: 'icon' | 'image') => {
@@ -157,6 +169,7 @@ export default function MissionModal({ isOpen, onClose, onSave, mission }: Missi
       setImageFile(null);
       setImagePreview('');
     }
+    setErrors(prev => ({ ...prev, [type]: '' }));
   };
 
   const validateForm = () => {
@@ -198,7 +211,7 @@ export default function MissionModal({ isOpen, onClose, onSave, mission }: Missi
       resetForm();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
-      setErrors(prev => ({ ...prev, submit: 'Erreur lors de la sauvegarde' }));
+      setErrors(prev => ({ ...prev, submit: '❌ Erreur lors de la sauvegarde. Veuillez réessayer.' }));
     } finally {
       setLoading(false);
     }
@@ -355,10 +368,15 @@ export default function MissionModal({ isOpen, onClose, onSave, mission }: Missi
                         onChange={(e) => handleFileChange(e, 'icon')}
                         className="w-full text-xs border border-border-light rounded-lg p-1 bg-warm-white"
                       />
-                      <p className="text-[8px] text-text-secondary mt-1">Max 2MB • Carré (64x64)</p>
-                      {errors.icon && <p className="text-[8px] text-red-600">{errors.icon}</p>}
+                      <p className="text-[8px] text-text-secondary mt-1">Max 2 Mo • Carré (64x64)</p>
                     </div>
                   </div>
+                  {errors.icon && (
+                    <p className="mt-1 text-[10px] text-red-600 flex items-center gap-1">
+                      <FaTimes className="w-2 h-2" />
+                      {errors.icon}
+                    </p>
+                  )}
                 </div>
 
                 {/* Image principale */}
@@ -391,10 +409,15 @@ export default function MissionModal({ isOpen, onClose, onSave, mission }: Missi
                         onChange={(e) => handleFileChange(e, 'image')}
                         className="w-full text-xs border border-border-light rounded-lg p-1 bg-warm-white"
                       />
-                      <p className="text-[8px] text-text-secondary mt-1">Max 5MB • 16:9</p>
-                      {errors.image && <p className="text-[8px] text-red-600">{errors.image}</p>}
+                      <p className="text-[8px] text-text-secondary mt-1">Max 5 Mo • 16:9</p>
                     </div>
                   </div>
+                  {errors.image && (
+                    <p className="mt-1 text-[10px] text-red-600 flex items-center gap-1">
+                      <FaTimes className="w-2 h-2" />
+                      {errors.image}
+                    </p>
+                  )}
                 </div>
               </div>
 
