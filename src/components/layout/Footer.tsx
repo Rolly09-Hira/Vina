@@ -183,6 +183,19 @@ export default function Footer() {
 
   const isHomePage = location.pathname === '/';
 
+  // Nouvelles coordonnées
+  const latitude = -18.8929493;
+  const longitude = 47.5583286;
+  
+  // URL de la carte OpenStreetMap avec les nouvelles coordonnées
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.015}%2C${latitude - 0.015}%2C${longitude + 0.015}%2C${latitude + 0.015}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+  
+  // URL pour le lien "Voir sur Google Maps" (version améliorée avec les nouvelles coordonnées)
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+  
+  // URL OpenStreetMap complète
+  const openStreetMapUrl = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`;
+
   // Charger les contacts depuis le backend
   useEffect(() => {
     const fetchContacts = async () => {
@@ -268,9 +281,6 @@ export default function Footer() {
       </div>
     </li>
   );
-
-  // Coordonnées pour la carte
-  const mapUrl = "https://www.openstreetmap.org/export/embed.html?bbox=47.507%2C-18.934%2C47.537%2C-18.904&layer=mapnik&marker=-18.919%2C47.522";
 
   return (
     <footer className="bg-forest-deep text-warm-white relative overflow-hidden">
@@ -479,7 +489,7 @@ export default function Footer() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
                   <a
-                    href="https://www.openstreetmap.org/?mlat=-18.919&mlon=47.522#map=15/-18.919/47.522"
+                    href={openStreetMapUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs bg-sun-gold text-forest-deep px-3 py-1.5 rounded-full hover:bg-soft-sun transition-colors flex items-center gap-1"
@@ -493,11 +503,24 @@ export default function Footer() {
               {/* Mini info sous la carte */}
               <div className="p-3 text-center border-t border-warm-white/10">
                 <p className="text-xs text-warm-white/60">
-                  Lot II E 33 I BIS Ambohidahy
+                  {contacts.adresses[0]?.valeur || 'Lot II E 33 I BIS Ambohidahy'}
                   <br />
                   Ankadindramamy, Antananarivo
                 </p>
               </div>
+            </div>
+
+            {/* Lien Google Maps en bas de la carte */}
+            <div className="mt-3 text-center">
+              <a
+                href={googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center space-x-2 text-xs text-warm-white/50 hover:text-sun-gold transition-colors"
+              >
+                <FaMapMarkerAlt className="w-3 h-3" />
+                <span>Voir sur Google Maps</span>
+              </a>
             </div>
 
             {/* Espace Admin */}
