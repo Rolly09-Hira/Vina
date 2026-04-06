@@ -56,6 +56,24 @@ const typeColors = {
   },
 };
 
+// ✅ Fonction de validation du format vidéo - UNIQUEMENT MP4
+const isValidVideoFormat = (file: File): boolean => {
+  // Vérification par MIME type
+  if (file.type === 'video/mp4') {
+    return true;
+  }
+  
+  // Vérification par extension (fallback)
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  return extension === 'mp4';
+};
+
+// ✅ Message d'erreur pour format non supporté
+const getVideoFormatError = (file: File): string => {
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  return `❌ Format non supporté: ${extension || 'inconnu'}. Utilisez uniquement MP4.`;
+};
+
 export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }: TemoignageModalProps) {
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -158,44 +176,74 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
       setVideoFile(null);
       setVideoPreview('');
     }
+    // Nettoyer les erreurs vidéo quand on change de type
+    if (type === 'PHOTO') {
+      setErrors(prev => ({ ...prev, video: '' }));
+    }
   };
 
+  // ✅ Validation du fichier vidéo - MODIFIÉE pour accepter UNIQUEMENT MP4
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'video') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Limites différentes pour photo et vidéo
-    const maxSize = type === 'photo' ? 10 * 1024 * 1024 : 50 * 1024 * 1024; // 10MB pour photo, 50MB pour vidéo
-    
-    if (file.size > maxSize) {
-      setErrors(prev => ({ 
-        ...prev, 
-        [type]: type === 'photo' ? 'Max 10MB' : 'Max 50MB' 
-      }));
-      return;
-    }
-
+    // Validation pour la photo
     if (type === 'photo') {
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        setErrors(prev => ({ ...prev, photo: '❌ La photo ne doit pas dépasser 10MB' }));
+        return;
+      }
       setPhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setPhotoPreview(reader.result as string);
       reader.readAsDataURL(file);
-    } else {
+      setErrors(prev => ({ ...prev, photo: '' }));
+      return;
+    }
+
+    // ✅ VALIDATION VIDÉO - UNIQUEMENT MP4
+    if (type === 'video') {
+      // Vérifier le format
+      if (!isValidVideoFormat(file)) {
+        setErrors(prev => ({ 
+          ...prev, 
+          video: getVideoFormatError(file)
+        }));
+        // Ne pas continuer - rejeter le fichier
+        e.target.value = ''; // Reset l'input
+        return;
+      }
+
+      // Vérifier la taille (max 50MB pour MP4)
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        setErrors(prev => ({ 
+          ...prev, 
+          video: '❌ La vidéo ne doit pas dépasser 50MB'
+        }));
+        e.target.value = '';
+        return;
+      }
+
+      // Tout est valide
       setVideoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setVideoPreview(reader.result as string);
       reader.readAsDataURL(file);
+      setErrors(prev => ({ ...prev, video: '' }));
     }
-    setErrors(prev => ({ ...prev, [type]: '' }));
   };
 
   const removeFile = (type: 'photo' | 'video') => {
     if (type === 'photo') {
       setPhotoFile(null);
       setPhotoPreview('');
+      setErrors(prev => ({ ...prev, photo: '' }));
     } else {
       setVideoFile(null);
       setVideoPreview('');
+      setErrors(prev => ({ ...prev, video: '' }));
     }
   };
 
@@ -215,15 +263,33 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
     }
 
     if (step === 3) {
-      if (formData.typeTemoignage === 'PHOTO' && !photoPreview) {
+      // ✅ Validation PHOTO
+      if (formData.typeTemoignage === 'PHOTO' && !photoPreview && !temoignage?.photoUrl) {
         newErrors.photo = 'Photo requise';
       }
-      if (formData.typeTemoignage === 'VIDEO' && !videoPreview) {
-        newErrors.video = 'Vidéo requise';
+      
+      // ✅ Validation VIDÉO - UNIQUEMENT MP4
+      if (formData.typeTemoignage === 'VIDEO') {
+        if (!videoPreview && !temoignage?.videoUrl) {
+          newErrors.video = 'Vidéo requise (format MP4 uniquement)';
+        }
+        // Vérifier que le fichier sélectionné est MP4
+        if (videoFile && !isValidVideoFormat(videoFile)) {
+          newErrors.video = 'Format non supporté. Utilisez uniquement MP4.';
+        }
       }
+      
+      // ✅ Validation PHOTO_VIDEO
       if (formData.typeTemoignage === 'PHOTO_VIDEO') {
-        if (!photoPreview) newErrors.photo = 'Photo requise';
-        if (!videoPreview) newErrors.video = 'Vidéo requise';
+        if (!photoPreview && !temoignage?.photoUrl) {
+          newErrors.photo = 'Photo requise';
+        }
+        if (!videoPreview && !temoignage?.videoUrl) {
+          newErrors.video = 'Vidéo requise (format MP4 uniquement)';
+        }
+        if (videoFile && !isValidVideoFormat(videoFile)) {
+          newErrors.video = 'Format non supporté. Utilisez uniquement MP4.';
+        }
       }
     }
 
@@ -240,9 +306,26 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Important : empêche la soumission automatique du formulaire
+    e.preventDefault();
     
-    if (!validateStep(3) || isSubmitting || loading) return;
+    // ✅ Validation finale avant soumission
+    if (!validateStep(3)) {
+      // Scroll vers l'erreur
+      const firstError = document.querySelector('.text-red-600');
+      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    
+    if (isSubmitting || loading) return;
+
+    // ✅ Dernière vérification du format vidéo
+    if (videoFile && !isValidVideoFormat(videoFile)) {
+      setErrors(prev => ({ 
+        ...prev, 
+        video: '❌ Impossible de soumettre: la vidéo doit être au format MP4'
+      }));
+      return;
+    }
 
     setIsSubmitting(true);
     setLoading(true);
@@ -263,6 +346,7 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
     } catch (error) {
       console.error('Erreur:', error);
       setErrors(prev => ({ ...prev, submit: 'Erreur lors de la sauvegarde' }));
+    } finally {
       setIsSubmitting(false);
       setLoading(false);
     }
@@ -315,7 +399,7 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} encType="multipart/form-data">
+          <form onSubmit={handleSubmit}>
             <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
               {/* Barre de progression compacte */}
               <div className="mb-4">
@@ -508,8 +592,8 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
                           <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-border-light rounded-xl cursor-pointer hover:border-water-blue transition-colors bg-warm-white">
                             <FaUpload className="w-4 h-4 text-text-secondary mb-1" />
                             <span className="text-xs text-text-secondary">Upload</span>
-                            <p className="text-[10px] text-border-light">Max 10MB</p>
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e, 'photo')} />
+                            <p className="text-[10px] text-border-light">JPG, PNG - Max 10MB</p>
+                            <input type="file" accept="image/jpeg,image/png,image/jpg" className="hidden" onChange={(e) => handleFileChange(e, 'photo')} />
                           </label>
                         )}
                         {errors.photo && <p className="mt-1 text-xs text-red-600">{errors.photo}</p>}
@@ -522,6 +606,10 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
                           <FaVideo className="w-3 h-3 mr-1 text-sun-gold" />
                           Vidéo {formData.typeTemoignage === 'VIDEO' && <span className="text-sun-gold ml-1">*</span>}
                         </label>
+                        {/* ✅ Message informatif sur le format accepté */}
+                        <p className="text-[10px] text-text-secondary mb-2">
+                          ✅ Format accepté: <span className="font-bold text-sun-gold">MP4 uniquement</span>
+                        </p>
                         {videoPreview ? (
                           <div className="relative group">
                             <video src={videoPreview} className="w-full h-24 object-cover rounded-lg border border-border-light" controls />
@@ -534,8 +622,8 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
                           <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-border-light rounded-xl cursor-pointer hover:border-sun-gold transition-colors bg-warm-white">
                             <FaUpload className="w-4 h-4 text-text-secondary mb-1" />
                             <span className="text-xs text-text-secondary">Upload</span>
-                            <p className="text-[10px] text-border-light">Max 50MB</p>
-                            <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileChange(e, 'video')} />
+                            <p className="text-[10px] text-border-light">MP4 uniquement - Max 50MB</p>
+                            <input type="file" accept="video/mp4,.mp4" className="hidden" onChange={(e) => handleFileChange(e, 'video')} />
                           </label>
                         )}
                         {errors.video && <p className="mt-1 text-xs text-red-600">{errors.video}</p>}
@@ -599,7 +687,7 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
             {/* Pied de page compact */}
             <div className="px-6 py-3 bg-ultra-light border-t border-border-light flex justify-between items-center">
               <div className="text-xs text-text-secondary">
-                <span className="text-sun-gold">*</span> requis
+                <span className="text-sun-gold">*</span> requis | <span className="text-sun-gold">MP4</span> uniquement pour vidéo
               </div>
               <div className="flex space-x-2">
                 <button type="button" onClick={onClose}
@@ -624,8 +712,7 @@ export default function TemoignageModal({ isOpen, onClose, onSave, temoignage }:
                   </button>
                 ) : (
                   <button 
-                    type="button"
-                    onClick={handleSubmit}
+                    type="submit"
                     disabled={loading || isSubmitting}
                     className={`px-3 py-1.5 text-xs font-medium text-warm-white ${colors?.button || 'bg-gradient-to-r from-olive-nature to-forest-deep'} rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center shadow-md`}
                   >
