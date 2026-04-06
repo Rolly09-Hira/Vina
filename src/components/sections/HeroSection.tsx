@@ -101,10 +101,10 @@ export default function HeroSection() {
         );
 
         setStats({
-          projets: projets.length.toString() + '+',
-          beneficiaires: totalBeneficiaires > 0 ? totalBeneficiaires.toLocaleString() + '+' : '0',
+          projets: projets.length.toString() ,
+          beneficiaires: totalBeneficiaires > 0 ? totalBeneficiaires.toLocaleString() : '0',
           regions: regions.length.toString(),
-          partenaires: partenaires.length.toString() + '+'
+          partenaires: partenaires.length.toString() 
         });
       } catch (error) {
         console.error('Erreur chargement statistiques:', error);
