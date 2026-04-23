@@ -1,25 +1,29 @@
 // src/services/api.ts
 import axios from 'axios';
 
+const BACKUP_URL = 'https://backvina-1.onrender.com/api';
+const PRIMARY_URL = 'https://hood-matrix-tucson-kingdom.trycloudflare.com/api';
+
+let useBackup = false;
+
 const api = axios.create({
-  baseURL: 'https://backvina-1.onrender.com/api',  // URL de render
+  baseURL: PRIMARY_URL,
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  }
+  headers: { 'Content-Type': 'application/json' }
 });
 
-// Intercepteur pour gérer les erreurs
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      console.log('Non authentifié (401)');
-      // Tu peux rediriger vers login si nécessaire
+  async (error) => {
+    if (error.code === 'ERR_NETWORK' || error.response?.status === 502 || error.response?.status === 504) {
+      if (!useBackup) {
+        useBackup = true;
+        console.log('Backend VPS indisponible, bascule vers Render');
+        api.defaults.baseURL = BACKUP_URL;
+        return api.request(error.config);
+      }
     }
-    if (error.code === 'ERR_NETWORK') {
-      console.log('Problème de connexion au backend');
-    }
+    if (error.response?.status === 401) console.log('Non authentifié');
     return Promise.reject(error);
   }
 );
